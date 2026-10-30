@@ -1,0 +1,1676 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<!-- maximum-scale=1 гасит авто-зум iOS при фокусе на инпутах; pinch-зум при этом работает -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Семейный капитал</title>
+<meta name="theme-color" content="#0E1016">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Капитал">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23071A22'/><text x='50' y='74' font-size='68' text-anchor='middle' font-family='Helvetica,Arial,sans-serif' font-weight='700' fill='%2319C6B8'>К</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700;800&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* «Стекло»: глубокий градиентный фон, матовые панели, одна большая цифра. Широкий экран: меню слева, контент справа. */
+  :root{
+    color-scheme:dark;
+    --bg:#071A22; --ink:#F3FAFB; --ink-2:rgba(243,250,251,.72); --ink-3:rgba(243,250,251,.5);
+    --glass:rgba(255,255,255,.075); --glass-2:rgba(255,255,255,.05); --glass-hi:rgba(255,255,255,.13);
+    --edge:rgba(255,255,255,.18); --rule:rgba(255,255,255,.1);
+    --teal:#19C6B8; --coral:#FF7A59; --lime:#C8F55A; --sky:#6CC8FF; --pink:#FF8FC7;
+    --pos:#C8F55A; --neg:#FF7A59;
+    --exchange:#FF7A59; --cushion:#6CC8FF; --realty:#19C6B8; --invest:#C8F55A; --debt:#FF5C7A;
+    --accent:#19C6B8; --accent-soft:rgba(25,198,184,.16); --accent-line:rgba(25,198,184,.55);
+    --f-disp:"Unbounded","Helvetica Neue",Arial,sans-serif;
+    --f-body:"Onest",system-ui,-apple-system,sans-serif;
+    --blur:blur(22px) saturate(160%);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;background:var(--bg)}
+  body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14.5px;line-height:1.5;min-height:100vh;position:relative}
+  body::before{content:"";position:fixed;inset:0;z-index:-2;background:
+      radial-gradient(60% 50% at 10% 6%,rgba(25,198,184,.7) 0%,transparent 62%),
+      radial-gradient(50% 45% at 95% 15%,rgba(255,122,89,.62) 0%,transparent 62%),
+      radial-gradient(60% 55% at 55% 100%,rgba(200,245,90,.34) 0%,transparent 62%),
+      linear-gradient(180deg,#0A2430,#071A22 60%,#05141A)}
+  body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.06;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .wrap{display:block}
+  .sheet{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;max-width:1440px;margin:0 auto;padding:26px 32px 56px}
+  .side{position:sticky;top:26px;align-self:start;display:flex;flex-direction:column;gap:18px}
+  .main{min-width:0;display:flex;flex-direction:column;gap:20px}
+  .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+  .pos{color:var(--pos)} .neg{color:var(--neg)} .muted{color:var(--ink-3)}
+  h2,h3,.wordmark,.hero-sum{font-family:var(--f-disp);letter-spacing:-.02em}
+  .kicker{font-size:12.5px;color:var(--ink-3);font-weight:500}
+  a{color:var(--teal);text-decoration:none}
+  a:hover{text-decoration:underline}
+  :focus-visible{outline:2px solid var(--lime);outline-offset:2px;border-radius:8px}
+
+  /* стекло: общий материал панелей */
+  .hero,.card,.set-block{background:var(--glass);border:1px solid var(--edge);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 30px 60px -40px rgba(0,0,0,.8);position:relative}
+  .hero::before,.card::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(70% 45% at 8% 0%,rgba(255,255,255,.12),transparent 60%)}
+
+  /* чипы статусов */
+  .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--edge);border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--ink-2);background:var(--glass-2);font-family:var(--f-body)}
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--ink-3)}
+  .chip.ok .dot{background:var(--lime)} .chip.warn .dot{background:#FFC857} .chip.err .dot{background:var(--coral)}
+  .chip.btn{cursor:pointer;transition:.15s} .chip.btn:hover{border-color:rgba(255,255,255,.4);color:var(--ink)}
+  .chip.on{background:rgba(255,255,255,.92);color:#071A22;border-color:transparent}
+  .side .chips{flex-direction:column;align-items:stretch}
+  .side .chip{justify-content:flex-start}
+
+  /* шапка и меню */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .side .top{padding:4px 4px 0}
+  .wordmark{font-size:19px;font-weight:800;line-height:1.15}
+  .wordmark .d{color:var(--coral)}
+  .tabs{display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:20px;background:var(--glass);border:1px solid var(--edge);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+  .tabs a{display:block;padding:9px 14px;border-radius:14px;font-size:14px;font-weight:500;color:var(--ink-2);transition:.15s}
+  .tabs a:hover{background:var(--glass-hi);color:var(--ink);text-decoration:none}
+  .tabs a.on{background:rgba(255,255,255,.92);color:#071A22}
+
+  /* карточки и секции */
+  .card{border-radius:24px;padding:22px}
+  section{scroll-margin-top:24px}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;position:relative}
+  .sec-head h2{font-size:20px;font-weight:700}
+  .sec-head .note{font-size:13px;color:var(--ink-3)}
+  .empty{padding:16px 18px;border:1px dashed rgba(255,255,255,.28);border-radius:18px;color:var(--ink-2);font-size:14px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;background:rgba(255,255,255,.03);position:relative}
+  .empty .btn{flex:0 0 auto}
+  .err{margin:10px 0 0;padding:9px 12px;border-radius:12px;background:rgba(255,92,122,.14);border:1px solid rgba(255,92,122,.45);color:#FFC2CC;font-size:13px}
+  .warn{margin:10px 0 0;padding:9px 12px;border-radius:12px;background:rgba(255,200,87,.1);border:1px solid rgba(255,200,87,.4);color:#FFE2A3;font-size:13px}
+
+  /* герой: одна большая цифра */
+  .hero{border-radius:32px;padding:30px 32px}
+  .hero>.top{position:relative}
+  .hero-sum{font-size:clamp(56px,6.4vw,96px);line-height:.98;font-weight:800;letter-spacing:-.05em;margin-top:14px;background:linear-gradient(100deg,#fff 0%,#DFFCF7 45%,#FFD6C8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:4px;animation:rise .7s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .hero-alt{font-size:20px;color:var(--ink-2);margin-top:6px;font-family:var(--f-disp);font-weight:500;letter-spacing:-.02em}
+  .hero-nd{font-size:13.5px;color:var(--ink-3);margin-top:10px}
+  .hero-nd b{color:var(--ink-2);font-weight:600}
+  .hero-delta{display:inline-block;font-size:14px;margin-top:12px;font-weight:600;padding:6px 14px;border-radius:999px;background:var(--glass-2);border:1px solid var(--edge)}
+  .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;margin-top:24px;position:relative}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+  .tile{background:var(--glass-2);border:1px solid var(--rule);border-radius:18px;padding:14px 16px;position:relative;overflow:hidden;border-left-width:1px}
+  .tile::after{content:"";position:absolute;left:16px;right:16px;top:0;height:3px;border-radius:0 0 3px 3px;background:var(--tile-c,var(--edge))}
+  .tile .k{font-size:12.5px;color:var(--ink-3);font-weight:500}
+  .tile .v{font-family:var(--f-disp);font-size:20px;font-weight:700;letter-spacing:-.03em;margin-top:6px}
+  .tile .s{font-size:12px;color:var(--ink-3);margin-top:3px}
+  .segs{display:inline-flex;gap:6px;margin-top:18px;flex-wrap:wrap}
+  .legend{display:flex;flex-direction:column;gap:7px;font-size:13.5px;flex:1;min-width:200px}
+  .legend .lrow{display:flex;align-items:center;gap:8px;justify-content:space-between}
+  .legend .lname{display:flex;align-items:center;gap:8px;color:var(--ink-2);min-width:0}
+  .tdot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;display:inline-block}
+  .donutbox{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+  .plan-line{margin-top:12px;padding:12px 16px;border-radius:16px;background:var(--accent-soft);border:1px solid var(--accent-line);font-size:14px}
+
+  /* таблицы и строки */
+  .rows{display:flex;flex-direction:column}
+  .row{display:grid;gap:10px;align-items:center;padding:12px 6px;border-bottom:1px solid var(--rule);border-radius:12px;transition:background .15s}
+  .row:hover{background:rgba(255,255,255,.04)}
+  .row:last-child{border-bottom:none}
+  .row.acc{grid-template-columns:12px minmax(0,1.2fr) 96px 1fr 84px 104px minmax(270px,1.4fr) auto}
+  .row.inv{grid-template-columns:12px minmax(0,1.3fr) 128px 104px 84px minmax(320px,1.6fr) auto}
+  .row.cur{grid-template-columns:minmax(0,1fr) auto auto;font-size:13.5px;padding:8px 2px}
+  .row .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+  .right{text-align:right;justify-self:end}
+  .badge{display:inline-block;font-size:11.5px;font-weight:500;border:1px solid var(--edge);border-radius:999px;padding:1px 9px;color:var(--ink-2);white-space:nowrap}
+  .badge.stale{border-color:rgba(255,200,87,.55);color:#FFE2A3;background:rgba(255,200,87,.08)}
+  .badge.tag{border-color:var(--accent-line);color:#A8F0E8}
+  .hist{margin:8px 0 2px;padding:12px 14px;border-radius:14px;background:rgba(0,0,0,.18);border:1px solid var(--rule);font-size:13px}
+  .hist .hrow{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--rule)}
+  .hist .hrow:last-child{border-bottom:none}
+  .addrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:14px;margin-top:6px;border-top:1px solid var(--rule)}
+
+  /* биржи */
+  .exgroups{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px;margin-bottom:6px}
+  .exgrid{display:grid;grid-template-columns:1fr;gap:14px}
+  .exgroup{min-width:0}
+  .exgroup>.gh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:0 2px 10px;font-size:14px;color:var(--ink-2);font-weight:500}
+  .ex{border-left:1px solid var(--edge)}
+  .ex-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;position:relative}
+  .ex-head b{font-family:var(--f-disp);font-size:16px;font-weight:700;letter-spacing:-.02em}
+  .quad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px;position:relative}
+  .quad .q{background:rgba(255,255,255,.05);border:1px solid var(--rule);border-radius:14px;padding:10px 12px}
+  .quad .q .k{font-size:12px;color:var(--ink-3)}
+  .quad .q .v{font-family:var(--f-disp);font-size:16px;font-weight:700;letter-spacing:-.03em;margin-top:3px}
+  .pos-list{margin-top:12px;font-size:13px;position:relative}
+  .pos-list .p{display:grid;grid-template-columns:minmax(0,1fr) 60px 80px 80px 88px;gap:8px;padding:6px 0;border-bottom:1px solid var(--rule)}
+  .pos-list .p:last-child{border-bottom:none}
+
+  /* месяц и план */
+  .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .mcol h3{font-size:15px;font-weight:700;margin-bottom:10px}
+  .mrow{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--rule)}
+  .mfoot{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-top:12px;margin-top:6px;border-top:1px solid var(--edge);font-size:14px;font-weight:600}
+  .chart{width:100%;height:auto;display:block;margin-top:8px;overflow:visible;position:relative}
+  .spark{vertical-align:middle;opacity:.95}
+  .snaps{display:flex;flex-direction:column;gap:3px;margin-top:14px;font-size:13px}
+
+  /* поля и кнопки */
+  input.inp,select.inp,textarea.inp{font-family:inherit;font-size:14px;color:var(--ink);background:rgba(0,0,0,.22);border:1px solid var(--edge);border-radius:12px;padding:8px 11px;width:100%;min-width:0}
+  input.inp:focus,select.inp:focus,textarea.inp:focus{outline:none;border-color:var(--accent-line);background:rgba(0,0,0,.32);box-shadow:0 0 0 3px var(--accent-soft)}
+  input.inp::placeholder{color:var(--ink-3)}
+  input.ni{font-variant-numeric:tabular-nums;text-align:right}
+  select.inp{cursor:pointer;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:28px}
+  select.inp option{background:#0A2430;color:var(--ink)}
+  input[type=date].inp{font-size:13px}
+  .w-sm{max-width:128px} .w-xs{max-width:100px} .w-md{max-width:180px}
+  button.btn{appearance:none;background:var(--glass-2);border:1px solid var(--edge);color:var(--ink);font-family:var(--f-body);font-size:13.5px;font-weight:500;padding:8px 15px;cursor:pointer;border-radius:999px;transition:.15s}
+  button.btn:hover{background:var(--glass-hi);border-color:rgba(255,255,255,.4)}
+  button.btn:active{transform:scale(.98)}
+  button.btn.solid{background:rgba(255,255,255,.92);border-color:transparent;color:#071A22;font-weight:600}
+  button.btn.solid:hover{background:#fff}
+  button.btn.sm{padding:5px 12px;font-size:12.5px}
+  button.btn:disabled{opacity:.45;cursor:not-allowed}
+  button.del{appearance:none;background:none;border:none;color:var(--ink-3);cursor:pointer;font-size:17px;line-height:1;padding:3px 7px;border-radius:9px}
+  button.del:hover{color:var(--coral);background:rgba(255,122,89,.12)}
+
+  /* настройки */
+  details.settings{margin-top:4px}
+  details.settings>summary{list-style:none;cursor:pointer;padding:12px 4px;font-size:14px;font-weight:500;color:var(--ink-3)}
+  details.settings>summary::-webkit-details-marker{display:none}
+  details.settings>summary:hover{color:var(--ink)}
+  .set-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:6px 0 8px}
+  .set-block{border-radius:22px;padding:18px}
+  .set-block h3{font-size:15px;font-weight:700;margin-bottom:12px}
+  .set-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule);font-size:13.5px;color:var(--ink-2)}
+  .set-row:last-child{border-bottom:none}
+  .set-actions{display:flex;flex-wrap:wrap;gap:8px;padding-top:12px}
+  .hint{font-size:12.5px;color:var(--ink-3);line-height:1.6;margin-top:8px}
+  .sc{display:grid;grid-template-columns:minmax(0,1fr) 90px 90px 72px 84px auto;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--rule)}
+  .types{display:flex;flex-wrap:wrap;gap:6px}
+  .types .t{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--edge);border-radius:999px;padding:4px 11px;font-size:13px;color:var(--ink-2)}
+  .demo-flag{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(200,245,90,.5);background:rgba(200,245,90,.12);color:var(--lime);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:600}
+  .colophon{margin-top:8px;padding:14px 4px 0;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--ink-3)}
+
+  /* узкое окно: меню сверху строкой */
+  @media(max-width:980px){
+    .sheet{grid-template-columns:1fr;padding:18px 18px 40px;gap:16px}
+    .side{position:static}
+    .tabs{flex-direction:row;overflow-x:auto;scrollbar-width:none}
+    .tabs a{white-space:nowrap}
+    .side .chips{flex-direction:row}
+    .hero-grid,.mgrid,.set-grid,.exgroups{grid-template-columns:1fr}
+    .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media(max-width:620px){
+    .row.acc,.row.inv{grid-template-columns:12px minmax(0,1fr) auto;row-gap:6px}
+    .row.acc>.cell-wide,.row.inv>.cell-wide{grid-column:2/4}
+    .row.acc>.right,.row.inv>.right{grid-column:1/-1;justify-self:end}
+    .quad{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .pos-list .p{grid-template-columns:minmax(0,1fr) auto;row-gap:2px}
+    .sc{grid-template-columns:minmax(0,1fr) 1fr;row-gap:4px}
+  }
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    .hero,.card,.set-block,.tabs{background:#0E2A35}
+  }
+  ::selection{background:rgba(25,198,184,.35)}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap"><main class="sheet" id="sheet"></main></div>
+
+<script src="core.js"></script>
+<script src="sync.js"></script>
+
+<!-- Блок рендера: только чистые функции. Каждая секция принимает (state, ui) и возвращает строку HTML,
+     ничего не знает про document и localStorage. Поэтому test/ui.test.js вынимает этот блок из файла
+     и исполняет его в node через vm, подставляя один Capital. -->
+<script id="render">
+'use strict';
+
+/* ===================== формат ===================== */
+
+function esc(s) { return Capital.esc(s); }
+function sym(c) { return c === 'RUB' ? '₽' : c === 'KZT' ? '₸' : c === 'AMD' ? '֏' : '$'; }
+function money(n, cur) { return n == null ? 'нет курса' : Capital.fmt(n) + ' ' + sym(cur || 'USD'); }
+function moneyS(n, cur) { return n == null ? 'нет курса' : Capital.fmtS(n) + ' ' + sym(cur || 'USD'); }
+function signCls(n) { return n == null ? '' : n > 0 ? 'pos' : n < 0 ? 'neg' : ''; }
+function pctOf(part, whole) { return whole ? Math.round(part / whole * 100) + '%' : '0%'; }
+function hhmm(iso) { return String(iso || '').slice(11, 16); }
+function nowMs(ui) { var n = ui && ui.now; return n ? new Date(n).getTime() : Date.now(); }
+function todayOf(ui) { return (ui && ui.today) || Capital.todayStr(new Date(nowMs(ui))); }
+function ymOf(state, ui) { return (ui && ui.ym) || Capital.todayYm(new Date(nowMs(ui))); }
+function baseCur(state, ui) { return (ui && ui.cur) || (state.settings && state.settings.baseCurrency) || 'USD'; }
+function isOpen(ui, key) { return !!(ui && ui.open && ui.open[key]); }
+function tp(id) { return Capital.ASSET_TYPES[id] || Capital.ASSET_TYPES.other; }
+function tdot(typeId) { return '<span class="tdot" style="background:' + tp(typeId).color + '"></span>'; }
+
+/* В href пускаем только http(s): javascript: и data: в ссылке это чужой код в нашей странице.
+   Разбираем через new URL, чтобы не угадывать схему регуляркой. Непонятный адрес даёт пустую строку. */
+function safeUrl(u) {
+  var s = String(u == null ? '' : u).trim();
+  if (!s) return '';
+  var parsed;
+  try { parsed = new URL(s); } catch (e) { return ''; }
+  return (parsed.protocol === 'http:' || parsed.protocol === 'https:') ? parsed.href : '';
+}
+/* Источник оценки: ссылкой, если адрес честный, иначе просто текстом, чтобы источник не пропал. */
+function srcLink(url, text) {
+  var safe = safeUrl(url);
+  return safe ? '<a href="' + esc(safe) + '" target="_blank" rel="noreferrer noopener">' + esc(text) + '</a>' : esc(text);
+}
+
+/* Код устройства из синка: base64 от JSON {t,o,r,k}. Раскодируем сами, чтобы показать
+   в confirm настоящие owner и repo до того, как код применён. Токен и ключ наружу не выносим. */
+function parseLinkCode(code) {
+  var s = String(code == null ? '' : code).trim();
+  if (!s || !/^[A-Za-z0-9+/=]+$/.test(s)) return null;
+  var raw;
+  try {
+    var bin = atob(s);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    raw = JSON.parse(new TextDecoder().decode(bytes));
+  } catch (e) { return null; }
+  if (!raw || !raw.t || !raw.o || !raw.k) return null;
+  return { owner: String(raw.o), repo: String(raw.r || 'capital-data') };
+}
+
+/* Подключение по ссылке #link=: решение отделено от сети, зависимости инжектируются.
+   deps = {config, link, confirm, note, backup?, restore?}.
+   Спрашиваем всегда и называем репо из кода; при отказе и при битом коде синк не трогаем;
+   при неудаче возвращаем прежний конфиг, чтобы рабочий синк не погас из-за чужой ссылки. */
+function applyLinkCode(code, deps) {
+  var d = deps || {};
+  var note = d.note || function () {};
+  var parsed = parseLinkCode(code);
+  if (!parsed) {
+    note('ссылка не подошла: код повреждён. Настройки синка остались прежними.');
+    return Promise.resolve({ applied: false, reason: 'bad-code' });
+  }
+  var to = parsed.owner + '/' + parsed.repo;
+  return Promise.resolve(d.config()).then(function (c) {
+    var q = c && c.owner
+      ? 'Синк уже подключён к ' + c.owner + '/' + c.repo + '. Переподключить к ' + to + '?'
+      : 'Подключить синк к репо ' + to + '?';
+    if (!d.confirm(q)) {
+      note('синк не переподключали: настройки остались прежними');
+      return { applied: false, reason: 'declined' };
+    }
+    var saved = d.backup ? d.backup() : null;
+    return Promise.resolve(d.link(code)).then(function (r) {
+      note('подключено к ' + ((r && r.owner) || parsed.owner) + '/' + ((r && r.repo) || parsed.repo));
+      return { applied: true };
+    }, function (e) {
+      if (d.restore) d.restore(saved);
+      note('ссылка не подошла: ' + String((e && e.message) || e) + '. Прежний синк на месте.');
+      return { applied: false, reason: 'failed' };
+    });
+  });
+}
+
+/* сумма в выбранной валюте и рядом в другой: доллар основной, рубль по курсу ЦБ */
+function fromUsd(state, usd, cur) {
+  if (usd == null) return null;
+  return cur === 'RUB' ? Capital.toRub(usd, 'USD', state.rates) : usd;
+}
+function inBase(state, usd, ui) { var c = baseCur(state, ui); return money(fromUsd(state, usd, c), c); }
+function inAlt(state, usd, ui) { var c = baseCur(state, ui) === 'RUB' ? 'USD' : 'RUB'; return money(fromUsd(state, usd, c), c); }
+function inBaseS(state, usd, ui) { var c = baseCur(state, ui); return moneyS(fromUsd(state, usd, c), c); }
+
+function sel(ent, id, f, value, options, extra) {
+  var opts = options.map(function (op) {
+    var v = typeof op === 'string' ? op : op.v;
+    var l = typeof op === 'string' ? op : op.l;
+    return '<option value="' + esc(v) + '"' + (String(value) === String(v) ? ' selected' : '') + '>' + esc(l) + '</option>';
+  }).join('');
+  return '<select class="inp' + (extra ? ' ' + extra : '') + '" data-ent="' + ent + '"' +
+    (id ? ' data-id="' + esc(id) + '"' : '') + ' data-f="' + f + '">' + opts + '</select>';
+}
+function inp(ent, id, f, value, opts) {
+  var o = opts || {};
+  return '<input class="inp' + (o.num ? ' ni' : '') + (o.cls ? ' ' + o.cls : '') + '"' +
+    (o.type ? ' type="' + o.type + '"' : '') +
+    ' data-ent="' + ent + '"' + (id ? ' data-id="' + esc(id) + '"' : '') + ' data-f="' + f + '"' +
+    (o.ym ? ' data-ym="' + esc(o.ym) + '"' : '') + (o.kind ? ' data-kind="' + esc(o.kind) + '"' : '') +
+    (o.k ? ' data-k="' + esc(o.k) + '"' : '') +
+    ' value="' + esc(value == null ? '' : value) + '"' +
+    (o.ph ? ' placeholder="' + esc(o.ph) + '"' : '') + '>';
+}
+function newInp(group, f, opts) {
+  var o = opts || {};
+  return '<input class="inp' + (o.num ? ' ni' : '') + (o.cls ? ' ' + o.cls : '') + '"' +
+    (o.type ? ' type="' + o.type + '"' : '') + ' data-new="' + group + '" data-f="' + f + '"' +
+    (o.value ? ' value="' + esc(o.value) + '"' : '') + (o.ph ? ' placeholder="' + esc(o.ph) + '"' : '') + '>';
+}
+function newSel(group, f, value, options, extra) {
+  var opts = options.map(function (op) {
+    var v = typeof op === 'string' ? op : op.v;
+    var l = typeof op === 'string' ? op : op.l;
+    return '<option value="' + esc(v) + '"' + (String(value) === String(v) ? ' selected' : '') + '>' + esc(l) + '</option>';
+  }).join('');
+  return '<select class="inp' + (extra ? ' ' + extra : '') + '" data-new="' + group + '" data-f="' + f + '">' + opts + '</select>';
+}
+function btn(act, label, opts) {
+  var o = opts || {};
+  return '<button class="btn' + (o.solid ? ' solid' : '') + (o.sm ? ' sm' : '') + '" data-act="' + act + '"' +
+    (o.id ? ' data-id="' + esc(o.id) + '"' : '') + (o.v != null ? ' data-v="' + esc(o.v) + '"' : '') +
+    (o.ym ? ' data-ym="' + esc(o.ym) + '"' : '') + '>' + esc(label) + '</button>';
+}
+function delBtn(act, id) { return '<button class="del" data-act="' + act + '" data-id="' + esc(id) + '" title="удалить">×</button>'; }
+function emptyBox(text, buttons) {
+  return '<div class="empty"><span>' + esc(text) + '</span><span class="segs">' + buttons + '</span></div>';
+}
+function ageBadge(dateStr, limitDays, ui) {
+  if (!dateStr) return '<span class="badge stale">даты нет</span>';
+  var d = Capital.ageDays(dateStr, todayOf(ui));
+  if (d == null) return '';
+  var stale = limitDays != null && d > limitDays;
+  var txt = d <= 0 ? 'введено сегодня' : 'введено ' + d + ' ' + Capital.plural(d, 'день', 'дня', 'дней') + ' назад';
+  return '<span class="badge' + (stale ? ' stale' : '') + '">' + esc(txt) + '</span>';
+}
+
+/* ===================== графики на inline SVG ===================== */
+
+function donut(parts) {
+  var vals = parts.filter(function (p) { return p.value > 0; });
+  var tot = vals.reduce(function (s, p) { return s + p.value; }, 0);
+  if (!(tot > 0)) return '';
+  var C = 2 * Math.PI * 52, off = 0, segs = '';
+  vals.forEach(function (p) {
+    var len = C * p.value / tot;
+    segs += '<circle cx="70" cy="70" r="52" fill="none" stroke="' + p.color + '" stroke-width="17"' +
+      ' stroke-dasharray="' + len.toFixed(2) + ' ' + (C - len).toFixed(2) + '"' +
+      ' stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 70 70)"><title>' + esc(p.label) + '</title></circle>';
+    off += len;
+  });
+  return '<svg viewBox="0 0 140 140" width="140" height="140" role="img" aria-label="капитал по типам активов">' +
+    '<circle cx="70" cy="70" r="52" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="17"/>' + segs + '</svg>';
+}
+
+function sparkline(values, color) {
+  var vals = (values || []).filter(function (v) { return v != null && !isNaN(v); });
+  if (vals.length < 2) return '';
+  var w = 76, h = 22;
+  var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals), span = (max - min) || 1;
+  var pts = vals.map(function (v, i) {
+    return (1 + i * (w - 2) / (vals.length - 1)).toFixed(1) + ',' + (h - 1 - (v - min) / span * (h - 2)).toFixed(1);
+  }).join(' ');
+  return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" aria-hidden="true">' +
+    '<polyline fill="none" stroke="' + color + '" stroke-width="1.6" stroke-linejoin="round" points="' + pts + '"/></svg>';
+}
+
+/* Линия факта и пунктиры сценариев. Сетка и подписи рисуются руками: библиотек в проекте нет. */
+function lineChart(series) {
+  var ymSet = {};
+  series.forEach(function (s) { s.points.forEach(function (p) { if (p.value != null) ymSet[p.ym] = 1; }); });
+  var keys = Object.keys(ymSet).sort();
+  if (keys.length < 2) return '';
+  var w = 880, h = 300, pl = 62, pr = 10, pt = 12, pb = 30;
+  var max = 0;
+  series.forEach(function (s) { s.points.forEach(function (p) { if (p.value != null && p.value > max) max = p.value; }); });
+  max = max || 1;
+  var step = Math.pow(10, Math.floor(Math.log(max) / Math.LN10)) / 2;
+  var top = Math.ceil(max / step) * step;
+  var idx = {};
+  keys.forEach(function (k, i) { idx[k] = i; });
+  function X(ym) { return pl + idx[ym] * (w - pl - pr) / (keys.length - 1); }
+  function Y(v) { return pt + (1 - v / top) * (h - pt - pb); }
+
+  var grid = '';
+  for (var g = 0; g <= 4; g++) {
+    var v = top * g / 4, y = Y(v);
+    grid += '<line x1="' + pl + '" y1="' + y.toFixed(1) + '" x2="' + (w - pr) + '" y2="' + y.toFixed(1) + '" stroke="rgba(255,255,255,.1)" stroke-width="1"/>' +
+      '<text x="' + (pl - 8) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="end" fill="rgba(243,250,251,.55)" font-size="12" font-family="Onest, sans-serif">' + esc(Capital.fmt(v)) + '</text>';
+  }
+  var everyN = Math.max(1, Math.ceil(keys.length / 8));
+  keys.forEach(function (k, i) {
+    if (i % everyN && i !== keys.length - 1) return;
+    grid += '<text x="' + X(k).toFixed(1) + '" y="' + (h - 8) + '" text-anchor="middle" fill="rgba(243,250,251,.55)" font-size="11.5" font-family="Onest, sans-serif">' + esc(k) + '</text>';
+  });
+
+  var lines = series.map(function (s) {
+    var pts = s.points.filter(function (p) { return p.value != null && idx[p.ym] != null; })
+      .map(function (p) { return X(p.ym).toFixed(1) + ',' + Y(p.value).toFixed(1); }).join(' ');
+    if (!pts) return '';
+    return '<polyline fill="none" stroke="' + s.color + '" stroke-width="' + (s.dashed ? 1.6 : 2.6) + '"' +
+      (s.dashed ? ' stroke-dasharray="6 5"' : '') + ' stroke-linejoin="round" points="' + pts + '"><title>' + esc(s.name) + '</title></polyline>';
+  }).join('');
+
+  return '<svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="капитал по месяцам против сценариев">' +
+    grid + lines + '</svg>';
+}
+
+/* ===================== общее ===================== */
+
+function isEmptyState(state) {
+  var ap = state.apartment || {};
+  return !(state.accounts || []).length && !(state.exchanges || []).length && !(state.investments || []).length &&
+    !((ap.valuations || []).length) && !ap.address && !Object.keys(state.months || {}).length &&
+    !Object.keys(state.snapshots || {}).length;
+}
+
+function accountUsd(state, a) {
+  var b = Capital.accountBalance(a);
+  return b.value == null ? null : Capital.toUsd(b.value, a.currency, state.rates);
+}
+
+function scenarioOf(state, ui) {
+  var list = (state.settings && state.settings.scenarios) || [];
+  var want = ui && ui.scenarioId;
+  var found = list.filter(function (s) { return s.id === want; })[0];
+  return found || list[0] || null;
+}
+
+function lastSnapshotYm(state) {
+  var keys = Object.keys(state.snapshots || {}).sort();
+  return keys.length ? keys[keys.length - 1] : null;
+}
+
+/* дельта за месяц: текущий итог против последнего снимка прошлых месяцев */
+function monthDelta(state, ui, totalUsd) {
+  var ymNow = Capital.todayYm(new Date(nowMs(ui)));
+  var keys = Object.keys(state.snapshots || {}).sort().filter(function (k) { return k < ymNow; });
+  if (!keys.length) return null;
+  var ym = keys[keys.length - 1];
+  var sn = state.snapshots[ym];
+  var prev = ui && ui.owner ? Capital.parseNum((sn.byOwner || {})[ui.owner]) : Capital.parseNum(sn.totalUsd);
+  if (prev == null) return null;
+  return { usd: totalUsd - prev, ym: ym };
+}
+
+function agentState(state, ui) {
+  var hours = Capital.parseNum(state.settings && state.settings.agentStaleHours) || 2;
+  var at = state.agent && state.agent.lastRunAt;
+  if (!at) return { known: false, stale: true, at: null, hours: hours };
+  var diff = nowMs(ui) - new Date(at).getTime();
+  return { known: true, stale: diff > hours * 3600000, at: at, hours: hours, error: state.agent.lastError || null };
+}
+
+function chipsBar(state, ui) {
+  var out = [];
+  var sync = (ui && ui.sync) || {};
+  var scls = sync.status === 'ok' ? 'ok' : sync.status === 'err' ? 'err' : sync.status === 'sync' ? 'warn' : '';
+  var stext = !sync.enabled ? 'синк выключен'
+    : sync.status === 'err' ? 'не синхронизировано' + (sync.lastSync ? ' с ' + hhmm(sync.lastSync) : '')
+    : sync.status === 'sync' ? 'синк идёт'
+    : sync.lastSync ? 'синк в ' + hhmm(sync.lastSync) : 'синк включён';
+  out.push('<span class="chip ' + scls + '"><span class="dot"></span>' + esc(stext) + '</span>');
+
+  var ag = agentState(state, ui);
+  var atext = !ag.known ? 'агент не запускался' : ag.stale ? 'агент молчит с ' + hhmm(ag.at) : 'агент в ' + hhmm(ag.at);
+  out.push('<span class="chip ' + (!ag.known ? '' : ag.stale ? 'warn' : 'ok') + '"><span class="dot"></span>' + esc(atext) + '</span>');
+
+  var usd = (state.rates || {}).USD;
+  var rtext = usd && usd.value != null ? 'курс от ' + Capital.ddmm(usd.date) + ': ' + Capital.fmt(usd.value) + ' ₽' : 'курс ЦБ не загружен';
+  out.push('<span class="chip ' + (usd && usd.value != null ? 'ok' : 'warn') + ' btn" data-act="cbr"><span class="dot"></span>' + esc(rtext) + '</span>');
+
+  return '<div class="chips">' + out.join('') + '</div>';
+}
+
+function tabsBar() {
+  var tabs = [
+    ['capital', 'Капитал'], ['accounts', 'Счета'], ['exchanges', 'Биржи'],
+    ['apartment', 'Квартира'], ['investments', 'Инвестиции'], ['month', 'Месяц'], ['plan', 'План'],
+  ];
+  return '<nav class="tabs">' + tabs.map(function (t) {
+    return '<a href="#' + t[0] + '">' + esc(t[1]) + '</a>';
+  }).join('') + '</nav>';
+}
+
+/* ===================== герой ===================== */
+
+function secHero(state, ui) {
+  ui = ui || {};
+  var cur = baseCur(state, ui);
+  var t = Capital.capitalTotals(state, { owner: ui.owner || undefined, staleHours: (state.settings || {}).agentStaleHours });
+  var h = [];
+
+  h.push('<section id="capital"><div class="hero">');
+  h.push('<div class="top"><span class="kicker">капитал семьи, с учётом просадки</span>' + (state.demo ? '<span class="demo-flag">пример</span>' : '') + '</div>');
+  h.push('<div class="hero-sum num">' + esc(inBase(state, t.totalUsd, ui)) + '</div>');
+  h.push('<div class="hero-alt num">' + esc(inAlt(state, t.totalUsd, ui)) + '</div>');
+  h.push('<div class="hero-nd">с учётом просадки. Если просадку посчитать в 0: <b class="num">' +
+    esc(inBase(state, t.totalNoDrawdownUsd, ui)) + '</b>, просадка общая <b class="num">' + esc(money(t.drawdownUsd, 'USD')) + '</b></div>');
+
+  var md = monthDelta(state, ui, t.totalUsd);
+  h.push('<div class="hero-delta ' + (md ? signCls(md.usd) : 'muted') + '">' +
+    (md ? esc(inBaseS(state, md.usd, ui) + ' за месяц, от снимка ' + md.ym) : 'дельты за месяц нет: зафиксируй месяц в разделе План') + '</div>');
+
+  var owners = [{ v: '', l: 'все' }, { v: 'Костя', l: 'Костя' }, { v: 'Люба', l: 'Люба' }];
+  h.push('<div class="segs">' + owners.map(function (o) {
+    return '<button class="chip btn' + ((ui.owner || '') === o.v ? ' on' : '') + '" data-act="owner" data-v="' + esc(o.v) + '">' + esc(o.l) + '</button>';
+  }).join('') + ['USD', 'RUB'].map(function (c) {
+    return '<button class="chip btn' + (cur === c ? ' on' : '') + '" data-act="cur" data-v="' + c + '">' + sym(c) + '</button>';
+  }).join('') + '</div>');
+
+  /* плитки разрезов: подушка и биржи с долями, как две строки таблицы */
+  var tiles = [
+    { k: 'подушка', usd: t.cushionUsd, color: 'var(--cushion)', s: pctOf(t.cushionUsd, t.totalUsd) + ' капитала' },
+    { k: 'на биржах', usd: t.exchangesUsd, color: 'var(--exchange)', s: pctOf(t.exchangesUsd, t.totalUsd) + ' капитала' },
+    { k: 'квартира', usd: t.apartmentUsd, color: 'var(--realty)', s: t.apartmentUsd == null ? 'оценки нет' : pctOf(t.apartmentUsd, t.totalUsd) + ' капитала' },
+    { k: 'инвестиции', usd: t.investmentsUsd, color: 'var(--invest)', s: pctOf(t.investmentsUsd, t.totalUsd) + ' капитала' },
+    { k: 'долги', usd: t.debtsUsd ? -t.debtsUsd : 0, color: 'var(--debt)', s: t.debtsUsd ? 'вычтено из капитала' : 'долгов нет' },
+  ];
+  var tilesHtml = '<div class="tiles">' + tiles.map(function (x) {
+    return '<div class="tile" style="--tile-c:' + x.color + '"><div class="k">' + esc(x.k) + '</div>' +
+      '<div class="v num">' + esc(x.usd == null ? 'нет оценки' : inBase(state, x.usd, ui)) + '</div><div class="s">' + esc(x.s) + '</div></div>';
+  }).join('') + '</div>';
+
+  var typeIds = Object.keys(t.byType).filter(function (id) { return t.byType[id] > 0; })
+    .sort(function (a, b) { return t.byType[b] - t.byType[a]; });
+  var parts = typeIds.map(function (id) { return { label: tp(id).label, color: tp(id).color, value: t.byType[id] }; });
+  var legend = '<div class="legend">' + (parts.length ? parts.map(function (p) {
+    return '<div class="lrow"><span class="lname">' + '<span class="tdot" style="background:' + p.color + '"></span>' + esc(p.label) + '</span>' +
+      '<span class="num">' + esc(inBase(state, p.value, ui)) + ' <span class="muted">' + pctOf(p.value, t.totalUsd) + '</span></span></div>';
+  }).join('') : '<div class="muted">типов пока нет</div>') + '</div>';
+
+  var curRows = Object.keys(t.byCurrency).sort().map(function (c) {
+    var r = t.byCurrency[c];
+    return '<div class="row cur"><span class="nm">' + esc(c) + '</span><span class="num">' + esc(money(r.native, c)) +
+      '</span><span class="num right">' + esc(r.usd == null ? 'нет курса' : money(r.usd, 'USD')) + '</span></div>';
+  }).join('');
+
+  var sc = scenarioOf(state, ui);
+  var snapYm = lastSnapshotYm(state);
+  var pd = sc && snapYm ? Capital.planDelta(state, sc.id, snapYm) : null;
+  var planLine = '<div class="plan-line">' + (pd
+    ? 'к плану ' + esc(sc.name) + ': <b class="num ' + signCls(pd.deltaUsd) + '">' + esc(moneyS(pd.deltaUsd, 'USD')) + '</b>' +
+      ' <span class="muted">факт ' + esc(money(pd.factUsd, 'USD')) + ' против плана ' + esc(money(pd.planUsd, 'USD')) + ' за ' + esc(snapYm) + '</span>'
+    : 'к плану сравнить пока нечего: зафиксируй месяц в разделе План') + '</div>';
+
+  h.push('<div class="hero-grid"><div>' + tilesHtml + planLine +
+    (curRows ? '<div class="kicker" style="margin:16px 0 6px">по валютам</div><div class="rows">' + curRows + '</div>' : '') + '</div>' +
+    '<div><div class="kicker" style="margin-bottom:8px">по типам активов</div><div class="donutbox">' + donut(parts) + legend + '</div></div></div>');
+
+  if (t.unpriced.length) {
+    h.push('<div class="warn">' + t.unpriced.length + ' ' + Capital.plural(t.unpriced.length, 'актив', 'актива', 'активов') +
+      ' без курса, они не в сумме: ' + esc(t.unpriced.map(function (u) { return u.label + ' (' + u.currency + ')'; }).join(', ')) + '</div>');
+  }
+
+  if (isEmptyState(state)) {
+    h.push('<div class="empty" style="margin-top:16px"><span>Данных пока нет. Три шага: 1) перенеси таблицу через импорт JSON, 2) заведи счета руками, 3) подключи агента бирж.</span>' +
+      '<span class="segs">' + btn('demo', 'показать пример', { solid: true, sm: true }) + btn('import', 'импорт JSON', { sm: true }) + btn('acc-focus', 'добавить счёт', { sm: true }) + '</span></div>');
+  } else if (state.demo) {
+    h.push('<div class="empty" style="margin-top:16px"><span>Это пример на выдуманных цифрах. Первый свой ввод его снимет, в синк пример не уходит.</span>' +
+      '<span class="segs">' + btn('demo-off', 'выйти из примера', { sm: true }) + '</span></div>');
+  }
+
+  h.push('</div></section>');
+  return h.join('');
+}
+
+/* ===================== счета ===================== */
+
+function secAccounts(state, ui) {
+  ui = ui || {};
+  var limit = Capital.parseNum((state.settings || {}).staleBalanceDays) || 45;
+  var list = (state.accounts || []).slice().sort(function (a, b) {
+    var ua = accountUsd(state, a), ub = accountUsd(state, b);
+    return (ub == null ? -Infinity : ub) - (ua == null ? -Infinity : ua);
+  });
+  var kinds = Capital.CUSHION_KINDS.map(function (k) { return { v: k, l: tp(k).label }; });
+
+  var h = ['<section id="accounts"><div class="card">'];
+  h.push('<div class="sec-head"><h2>Счета</h2><span class="note">наличка, карты и банки: остатки вводятся руками, у каждого видна давность</span></div>');
+
+  if (!list.length) {
+    h.push(emptyBox('Добавь первый счёт: наличка, карта или банк.', btn('acc-add', 'добавить счёт', { solid: true, sm: true })));
+  } else {
+    h.push('<div class="rows">');
+    list.forEach(function (a) {
+      var b = Capital.accountBalance(a);
+      var usd = accountUsd(state, a);
+      var hist = (a.balances || []).slice().sort(function (x, y) { return String(x.date) < String(y.date) ? -1 : 1; });
+      h.push('<div class="row acc" data-id="' + esc(a.id) + '">');
+      h.push(tdot(a.kind));
+      h.push('<span class="nm">' + inp('account', a.id, 'name', a.name, { ph: '[впиши]' }) + '</span>');
+      h.push(sel('account', a.id, 'kind', a.kind, kinds));
+      h.push('<span class="cell-wide">' + inp('account', a.id, 'bank', a.bank, { ph: 'банк' }) + '</span>');
+      h.push(sel('account', a.id, 'currency', a.currency, Capital.CURRENCIES));
+      h.push(sel('account', a.id, 'owner', a.owner, Capital.OWNERS));
+      h.push('<span class="cell-wide" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">' +
+        inp('account', a.id, 'balance', b.value, { num: true, cls: 'w-xs' }) +
+        inp('account', a.id, 'balanceDate', b.date || todayOf(ui), { type: 'date', cls: 'w-sm' }) +
+        ageBadge(b.date, limit, ui) +
+        '<span class="muted num">' + esc(usd == null ? 'нет курса' : money(usd, 'USD')) + '</span>' +
+        sparkline(hist.map(function (x) { return x.value; }), tp(a.kind).color) +
+        '</span>');
+      h.push('<span class="right">' + btn('acc-hist', 'история', { sm: true, id: a.id }) + delBtn('acc-del', a.id) + '</span>');
+      h.push('</div>');
+      if (isOpen(ui, 'acc:' + a.id)) {
+        h.push('<div class="hist">' + (hist.length ? hist.slice().reverse().map(function (x) {
+          return '<div class="hrow"><span class="muted num">' + esc(x.date) + '</span><span class="num">' + esc(money(x.value, a.currency)) + '</span></div>';
+        }).join('') : '<span class="muted">истории пока нет</span>') + '</div>');
+      }
+    });
+    h.push('</div>');
+  }
+
+  h.push('<div class="addrow" id="acc-new">' +
+    newInp('acc', 'name', { ph: 'название счёта', cls: 'w-md' }) +
+    newSel('acc', 'kind', 'cash', kinds, 'w-sm') +
+    newInp('acc', 'bank', { ph: 'банк или страна', cls: 'w-md' }) +
+    newSel('acc', 'currency', 'USD', Capital.CURRENCIES, 'w-xs') +
+    newSel('acc', 'owner', 'общий', Capital.OWNERS, 'w-sm') +
+    newInp('acc', 'balance', { ph: 'остаток', num: true, cls: 'w-xs' }) +
+    newInp('acc', 'date', { type: 'date', value: todayOf(ui), cls: 'w-sm' }) +
+    btn('acc-add', 'добавить', { solid: true }) + '</div>');
+  h.push('</div></section>');
+  return h.join('');
+}
+
+/* ===================== биржи ===================== */
+
+function exchangeCard(state, ui, e) {
+  var hours = Capital.parseNum((state.settings || {}).agentStaleHours) || 2;
+  var t = Capital.exchangeTotals(e, { staleHours: hours, now: new Date(nowMs(ui)).toISOString() });
+  var h = ['<div class="card ex" data-id="' + esc(e.id) + '">'];
+  h.push('<div class="ex-head"><b>' + esc(e.label || e.id) + '</b>' +
+    (e.veles ? '<span class="badge tag">Veles</span>' : '') +
+    '<span class="badge">' + esc(e.source === 'manual' ? 'руками' : 'агент') + '</span>' +
+    '<span class="badge">' + esc(e.owner) + '</span>' +
+    '<span class="muted" style="margin-left:auto;font-size:11.5px">' + esc(t.at ? 'снимок ' + Capital.ddmm(String(t.at).slice(0, 10)) + ' ' + hhmm(t.at) : 'снимка нет') + '</span>' +
+    delBtn('ex-del', e.id) + '</div>');
+  /* at это время последних удачных цифр, errorAt время неудачного опроса: давность считаем по at */
+  if (t.error) {
+    h.push('<div class="err">ошибка биржи: ' + esc(t.error) +
+      (t.errorAt ? '. Опрошен в ' + esc(hhmm(t.errorAt)) : '') +
+      '. Цифры остались от ' + esc(t.at ? Capital.ddmm(String(t.at).slice(0, 10)) + ' ' + hhmm(t.at) : 'последнего удачного опроса') + '.</div>');
+  }
+  if (e.source === 'agent' && t.stale && t.at) h.push('<div class="warn">агент молчит с ' + esc(hhmm(t.at)) + ', цифры могли устареть</div>');
+  if (e.source === 'agent' && !t.at) h.push('<div class="warn">агент ещё не приносил цифры по этому аккаунту</div>');
+
+  var quad = [['всего', t.equity], ['свободно', t.free], ['в позициях', t.inPositions], ['просадка', t.unrealizedPnl]];
+  h.push('<div class="quad">' + quad.map(function (q) {
+    return '<div class="q"><div class="k">' + esc(q[0]) + '</div><div class="v num ' + (q[0] === 'просадка' ? signCls(q[1]) : '') + '">' +
+      esc(q[1] == null ? '[впиши]' : money(q[1], 'USD')) + '</div></div>';
+  }).join('') + '</div>');
+
+  if (e.source === 'manual') {
+    h.push('<div class="addrow" style="border-top:none;padding-top:10px">' +
+      '<span class="kicker">ручной ввод</span>' +
+      inp('exchange', e.id, 'equity', e.last.equity, { num: true, cls: 'w-xs' }) +
+      inp('exchange', e.id, 'free', e.last.free, { num: true, cls: 'w-xs' }) +
+      inp('exchange', e.id, 'inPositions', e.last.inPositions, { num: true, cls: 'w-xs' }) +
+      inp('exchange', e.id, 'unrealizedPnl', e.last.unrealizedPnl, { num: true, cls: 'w-xs' }) +
+      inp('exchange', e.id, 'atDate', String(e.last.at || '').slice(0, 10) || todayOf(ui), { type: 'date', cls: 'w-sm' }) +
+      '</div><div class="hint">порядок полей: всего, свободно, в позициях, просадка. Агент эти цифры не перепишет, пока источник «руками».</div>');
+  }
+
+  var positions = (e.last && e.last.positions) || [];
+  if (positions.length) {
+    h.push('<div style="margin-top:10px">' + btn('ex-pos', isOpen(ui, 'ex:' + e.id) ? 'скрыть позиции' : 'позиции: ' + positions.length, { sm: true, id: e.id }) + '</div>');
+    if (isOpen(ui, 'ex:' + e.id)) {
+      h.push('<div class="pos-list">' + positions.map(function (p) {
+        return '<div class="p"><span class="nm">' + esc(p.symbol) + '</span><span class="muted">' + esc(p.side || '') + '</span>' +
+          '<span class="num">' + esc(p.size == null ? '' : p.size) + '</span>' +
+          '<span class="num muted">' + esc(p.entry == null ? '' : Capital.fmt(p.entry)) + '</span>' +
+          '<span class="num right ' + signCls(p.pnl) + '">' + esc(p.pnl == null ? '' : moneyS(p.pnl, 'USD')) + '</span></div>';
+      }).join('') + '</div>');
+    }
+  }
+  h.push('</div>');
+  return h.join('');
+}
+
+function secExchanges(state, ui) {
+  ui = ui || {};
+  var list = state.exchanges || [];
+  var h = ['<section id="exchanges"><div class="card">'];
+  h.push('<div class="sec-head"><h2>Биржи</h2><span class="note">цифры приносит агент на Маке по read-only ключам, аккаунты с источником «руками» он не трогает</span></div>');
+
+  var ag = agentState(state, ui);
+  if (list.length) {
+    if (!ag.known) h.push('<div class="warn">агент ещё не запускался: запусти node agent/capital_agent.mjs --once или внеси цифры руками</div>');
+    else if (ag.stale) h.push('<div class="warn">агент молчит с ' + esc(hhmm(ag.at)) + ', больше ' + ag.hours + ' ' + Capital.plural(ag.hours, 'часа', 'часов', 'часов') + '</div>');
+    if (ag.error) h.push('<div class="err">последняя ошибка агента: ' + esc(ag.error) + '</div>');
+  }
+
+  if (!list.length) {
+    h.push(emptyBox('Подключи агента по ключам бирж или внеси цифры аккаунта руками.', btn('ex-add', 'добавить аккаунт руками', { solid: true, sm: true })));
+  } else {
+    var totals = { equity: 0, free: 0, inPositions: 0, pnl: 0 };
+    list.forEach(function (e) {
+      var t = Capital.exchangeTotals(e, { staleHours: ag.hours, now: new Date(nowMs(ui)).toISOString() });
+      totals.equity += t.equity || 0; totals.free += t.free || 0;
+      totals.inPositions += t.inPositions || 0; totals.pnl += t.unrealizedPnl || 0;
+    });
+    h.push('<div class="quad" style="margin-bottom:12px">' +
+      '<div class="q"><div class="k">всего на биржах</div><div class="v num">' + esc(money(totals.equity, 'USD')) + '</div></div>' +
+      '<div class="q"><div class="k">свободно</div><div class="v num">' + esc(money(totals.free, 'USD')) + '</div></div>' +
+      '<div class="q"><div class="k">в позициях</div><div class="v num">' + esc(money(totals.inPositions, 'USD')) + '</div></div>' +
+      '<div class="q"><div class="k">просадка общая</div><div class="v num ' + signCls(totals.pnl) + '">' + esc(moneyS(totals.pnl, 'USD')) + '</div></div></div>');
+
+    var byEx = {};
+    list.forEach(function (e) { (byEx[e.exchange] = byEx[e.exchange] || []).push(e); });
+    h.push('<div class="exgroups">');
+    Object.keys(byEx).sort().forEach(function (name) {
+      var group = byEx[name];
+      var sum = group.reduce(function (s, e) { return s + (Capital.exchangeTotals(e).equity || 0); }, 0);
+      h.push('<div class="exgroup"><div class="gh"><b>' + esc(name.toUpperCase()) + '</b><span class="num">' + esc(money(sum, 'USD')) +
+        ' <span class="muted">' + group.length + ' ' + Capital.plural(group.length, 'аккаунт', 'аккаунта', 'аккаунтов') + '</span></span></div>' +
+        '<div class="exgrid">' + group.map(function (e) { return exchangeCard(state, ui, e); }).join('') + '</div></div>');
+    });
+    h.push('</div>');
+  }
+
+  h.push('<div class="addrow" id="ex-new">' +
+    newInp('ex', 'label', { ph: 'подпись аккаунта', cls: 'w-md' }) +
+    newSel('ex', 'exchange', 'okx', ['okx', 'bybit', 'binance'], 'w-sm') +
+    newSel('ex', 'owner', 'Костя', Capital.OWNERS, 'w-sm') +
+    newSel('ex', 'veles', '', [{ v: '', l: 'обычный' }, { v: '1', l: 'Veles' }], 'w-sm') +
+    newInp('ex', 'equity', { ph: 'всего', num: true, cls: 'w-xs' }) +
+    btn('ex-add', 'добавить руками', { solid: true }) + '</div>');
+  h.push('<div class="hint">Ключи лежат только на Маке, в ~/.config/family-capital/keys.json, и в приложение не попадают.</div>');
+  h.push('</div></section>');
+  return h.join('');
+}
+
+/* ===================== квартира ===================== */
+
+function secApartment(state, ui) {
+  ui = ui || {};
+  var ap = state.apartment || {};
+  var cur = ap.currency || 'RUB';
+  var last = Capital.lastValuation(ap);
+  var prev = Capital.prevValuation(ap);
+  var limit = Capital.parseNum((state.settings || {}).apartmentStaleDays) || 90;
+  var rateAt = (ui && ui.rateAt) || {};
+
+  var h = ['<section id="apartment"><div class="card">'];
+  h.push('<div class="sec-head"><h2>Квартира</h2><span class="note">оценка вводится руками: источника цен по адресу нет, автооценку подключим отдельно</span></div>');
+
+  h.push('<div class="addrow" style="border-top:none;padding-top:0">' +
+    '<span class="kicker">адрес</span>' + inp('apartment', '', 'address', ap.address, { ph: '[впиши]', cls: 'w-md' }) +
+    '<span class="kicker">площадь, м²</span>' + inp('apartment', '', 'area', ap.area, { num: true, ph: '[впиши]', cls: 'w-xs' }) +
+    '<span class="kicker">цена покупки</span>' + inp('apartment', '', 'buyPrice', ap.buyPrice, { num: true, ph: '[впиши]', cls: 'w-sm' }) +
+    '<span class="kicker">дата покупки</span>' + inp('apartment', '', 'buyDate', ap.buyDate, { type: 'date', cls: 'w-sm' }) +
+    sel('apartment', '', 'currency', cur, Capital.CURRENCIES, 'w-xs') +
+    sel('apartment', '', 'owner', ap.owner || 'общий', Capital.OWNERS, 'w-sm') + '</div>');
+
+  if (!last) {
+    h.push(emptyBox('Квартира не входит в капитал, пока нет оценки: впиши цену, дату и ссылку на объявление.',
+      btn('ap-focus', 'добавить оценку', { solid: true, sm: true })));
+  } else {
+    var age = Capital.ageDays(last.date, todayOf(ui));
+    var usdToday = Capital.toUsd(last.value, cur, state.rates);
+    var rOnDate = rateAt[last.date];
+    var usdOnDate = cur === 'RUB' && rOnDate ? last.value / rOnDate : (cur === 'USD' || cur === 'USDT' ? last.value : null);
+    var delta = prev ? last.value - prev.value : null;
+
+    h.push('<div class="tiles" style="margin-top:12px">' +
+      '<div class="tile" style="--tile-c:var(--realty)"><div class="k">последняя оценка</div><div class="v num">' + esc(money(last.value, cur)) + '</div>' +
+      '<div class="s">' + esc(last.date + (last.source ? ', ' + last.source : '')) + (age != null && age > limit ? ' <span class="badge stale">устарело</span>' : '') + '</div></div>' +
+      '<div class="tile" style="--tile-c:var(--realty)"><div class="k">в долларах</div><div class="v num">' + esc(usdToday == null ? 'нет курса' : money(usdToday, 'USD')) + '</div>' +
+      '<div class="s">' + esc('по курсу сегодня; на дату оценки: ' + (usdOnDate == null ? 'курса на ' + Capital.ddmm(last.date) + ' нет' : money(usdOnDate, 'USD'))) + '</div></div>' +
+      '<div class="tile" style="--tile-c:var(--realty)"><div class="k">дельта к предыдущей</div><div class="v num ' + signCls(delta) + '">' +
+      esc(delta == null ? 'первая оценка' : moneyS(delta, cur)) + '</div><div class="s">' + esc(prev ? 'предыдущая ' + prev.date + ': ' + money(prev.value, cur) : 'сравнивать пока не с чем') + '</div></div>' +
+      '<div class="tile" style="--tile-c:var(--realty)"><div class="k">цена за м²</div><div class="v num">' +
+      esc(ap.area ? money(last.value / ap.area, cur) : '[впиши] площадь') + '</div><div class="s">' +
+      esc(ap.area && ap.buyPrice ? 'при покупке ' + money(ap.buyPrice / ap.area, cur) : 'при покупке: нужна площадь и цена покупки') + '</div></div>' +
+      '</div>');
+    if (age != null && age > limit) {
+      h.push('<div class="warn">оценке ' + age + ' ' + Capital.plural(age, 'день', 'дня', 'дней') + ', это больше ' + limit + ': обнови цену по объявлениям</div>');
+    }
+    h.push('<div class="hist">' + (ap.valuations || []).slice().sort(function (a, b) { return String(a.date) < String(b.date) ? 1 : -1; }).map(function (v, i) {
+      return '<div class="hrow"><span class="muted num">' + esc(v.date) + '</span>' +
+        '<span class="nm muted">' + (v.url ? srcLink(v.url, v.source || 'ссылка') : esc(v.source || '')) + '</span>' +
+        '<span class="num">' + esc(money(v.value, cur)) + '</span>' +
+        '<button class="del" data-act="ap-val-del" data-v="' + i + '" title="удалить оценку">×</button></div>';
+    }).join('') + '</div>');
+  }
+
+  h.push('<div class="addrow" id="ap-new">' +
+    '<span class="kicker">новая оценка</span>' +
+    newInp('ap', 'value', { ph: 'цена', num: true, cls: 'w-sm' }) +
+    newInp('ap', 'date', { type: 'date', value: todayOf(ui), cls: 'w-sm' }) +
+    newInp('ap', 'source', { ph: 'источник', cls: 'w-md' }) +
+    newInp('ap', 'url', { ph: 'ссылка на объявление', cls: 'w-md' }) +
+    btn('ap-val-add', 'добавить оценку', { solid: true }) + '</div>');
+  h.push('</div></section>');
+  return h.join('');
+}
+
+/* ===================== инвестиции ===================== */
+
+/* Простой процент к дате: ядро его не считает, в UI он нужен только для подписи «ожидается». */
+function expectedIncome(inv) {
+  var v = Capital.lastValuation(inv);
+  var y = Capital.parseNum(inv.expectedYield);
+  if (!v || y == null || !inv.maturity) return null;
+  var days = Capital.ageDays(v.date, inv.maturity);
+  if (days == null || days <= 0) return null;
+  return { value: v.value * y / 100 * days / 365, days: days, maturity: inv.maturity };
+}
+
+function secInvestments(state, ui) {
+  ui = ui || {};
+  var list = state.investments || [];
+  var typeOpts = Object.keys(Capital.ASSET_TYPES).filter(function (id) {
+    return ['exchange', 'cash', 'card', 'bank'].indexOf(id) < 0;
+  }).map(function (id) { return { v: id, l: tp(id).label }; });
+
+  var h = ['<section id="investments"><div class="card">'];
+  h.push('<div class="sec-head"><h2>Инвестиции</h2><span class="note">всё, что не биржа и не карта: кошельки, вклады, акции, недвижимость, займы, доли, долги</span></div>');
+
+  if (!list.length) {
+    h.push(emptyBox('Добавь первую инвестицию: тип, название, сумма и валюта.', btn('inv-add', 'добавить инвестицию', { solid: true, sm: true })));
+  } else {
+    h.push('<div class="rows">');
+    list.slice().sort(function (a, b) {
+      var ua = Capital.lastValuation(a), ub = Capital.lastValuation(b);
+      var xa = ua ? Capital.toUsd(ua.value, a.currency, state.rates) || 0 : 0;
+      var xb = ub ? Capital.toUsd(ub.value, b.currency, state.rates) || 0 : 0;
+      return xb - xa;
+    }).forEach(function (i) {
+      var last = Capital.lastValuation(i);
+      var prev = Capital.prevValuation(i);
+      var sign = tp(i.type).sign;
+      var usd = last ? Capital.toUsd(last.value, i.currency, state.rates) : null;
+      var exp = expectedIncome(i);
+      h.push('<div class="row inv" data-id="' + esc(i.id) + '">');
+      h.push(tdot(i.type));
+      h.push('<span class="nm">' + inp('investment', i.id, 'name', i.name, { ph: '[впиши]' }) +
+        '<div class="muted" style="font-size:11px;margin-top:3px">' + esc(tp(i.type).label) +
+        (last ? ', оценка ' + last.date : ', оценки нет') +
+        (prev && last ? ', дельта ' + moneyS(last.value - prev.value, i.currency) : '') +
+        (exp ? '. Ожидается ' + moneyS(exp.value * sign, i.currency) + ' к ' + exp.maturity : '') + '</div></span>');
+      h.push(sel('investment', i.id, 'type', i.type, typeOpts));
+      h.push(sel('investment', i.id, 'owner', i.owner, Capital.OWNERS));
+      h.push(sel('investment', i.id, 'currency', i.currency, Capital.CURRENCIES));
+      h.push('<span class="cell-wide" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">' +
+        inp('investment', i.id, 'value', last ? last.value : null, { num: true, cls: 'w-xs' }) +
+        inp('investment', i.id, 'valueDate', last ? last.date : todayOf(ui), { type: 'date', cls: 'w-sm' }) +
+        inp('investment', i.id, 'expectedYield', i.expectedYield, { num: true, cls: 'w-xs', ph: '% год' }) +
+        inp('investment', i.id, 'maturity', i.maturity, { type: 'date', cls: 'w-sm' }) +
+        '<span class="num ' + (sign < 0 ? 'neg' : 'muted') + '">' + esc(usd == null ? 'нет курса' : money(usd * sign, 'USD')) + '</span>' +
+        sparkline((i.valuations || []).map(function (v) { return v.value; }), tp(i.type).color) + '</span>');
+      h.push('<span class="right">' + btn('inv-hist', 'история', { sm: true, id: i.id }) + delBtn('inv-del', i.id) + '</span>');
+      h.push('</div>');
+      if (isOpen(ui, 'inv:' + i.id)) {
+        h.push('<div class="hist">' + ((i.valuations || []).length ? (i.valuations || []).slice().sort(function (a, b) { return String(a.date) < String(b.date) ? 1 : -1; }).map(function (v) {
+          return '<div class="hrow"><span class="muted num">' + esc(v.date) + '</span><span class="muted nm">' + esc(v.source || '') + '</span><span class="num">' + esc(money(v.value, i.currency)) + '</span></div>';
+        }).join('') : '<span class="muted">истории пока нет</span>') + '</div>');
+      }
+    });
+    h.push('</div>');
+  }
+
+  h.push('<div class="addrow" id="inv-new">' +
+    newSel('inv', 'type', 'cryptoWallet', typeOpts, 'w-sm') +
+    newInp('inv', 'name', { ph: 'название', cls: 'w-md' }) +
+    newSel('inv', 'owner', 'общий', Capital.OWNERS, 'w-sm') +
+    newSel('inv', 'currency', 'USD', Capital.CURRENCIES, 'w-xs') +
+    newInp('inv', 'value', { ph: 'сумма', num: true, cls: 'w-xs' }) +
+    newInp('inv', 'date', { type: 'date', value: todayOf(ui), cls: 'w-sm' }) +
+    newInp('inv', 'expectedYield', { ph: '% годовых', num: true, cls: 'w-xs' }) +
+    newInp('inv', 'maturity', { type: 'date', cls: 'w-sm' }) +
+    btn('inv-add', 'добавить', { solid: true }) + '</div>');
+  h.push('<div class="hint">Кнопка добавляет актив только с названием и суммой. Тип «Долг» входит в капитал с минусом.</div>');
+  h.push('</div></section>');
+  return h.join('');
+}
+
+/* ===================== месяц ===================== */
+
+function secMonth(state, ui) {
+  ui = ui || {};
+  var ym = ymOf(state, ui);
+  var mt = (state.settings && state.settings.monthTemplate) || { income: [], expense: [], excludeFromTotal: [] };
+  var m = (state.months || {})[ym] || { income: {}, expense: {} };
+  var t = Capital.monthTotals(state, ym);
+  var skip = mt.excludeFromTotal || [];
+
+  var h = ['<section id="month"><div class="card">'];
+  h.push('<div class="sec-head"><h2>Месяц</h2><span class="note">статьи листа БЮДЖЕТ: десятины, траты, сальдо и движение денег на биржах</span></div>');
+  h.push('<div class="segs">' + btn('month-prev', '<', { sm: true }) +
+    '<span class="chip on">' + esc(ym) + '</span>' + btn('month-next', '>', { sm: true }) +
+    btn('month-now', 'текущий месяц', { sm: true }) + '</div>');
+
+  if (!Object.keys(state.months || {}).length) {
+    h.push('<div style="margin-top:12px">' + emptyBox('Ни одного месяца пока нет: заполни доходы и расходы за ' + ym + '.',
+      btn('month-fill', 'заполнить месяц', { solid: true, sm: true })) + '</div>');
+  }
+
+  function col(kind, title, items, sum) {
+    return '<div class="mcol"><h3>' + esc(title) + '</h3>' + items.map(function (name) {
+      var excluded = kind === 'expense' && skip.indexOf(name) >= 0;
+      return '<div class="mrow"><span class="nm">' + esc(name) +
+        (excluded ? ' <span class="badge">не в итого</span>' : '') + '</span>' +
+        inp('month-item', '', 'value', (m[kind] || {})[name], { num: true, ym: ym, kind: kind, k: name }) + '</div>';
+    }).join('') + '<div class="mfoot"><span>итого ' + esc(title.toLowerCase()) + '</span><span class="num">' + esc(money(sum, 'USD')) + '</span></div></div>';
+  }
+
+  h.push('<div class="mgrid" style="margin-top:12px">' +
+    col('income', 'Доходы', mt.income || [], t.income) +
+    col('expense', 'Расходы', mt.expense || [], t.expense) + '</div>');
+  h.push('<div class="mfoot" style="border-top-color:var(--accent-line)"><span>сальдо месяца</span><span class="num ' + signCls(t.saldo) + '">' + esc(moneyS(t.saldo, 'USD')) + '</span></div>');
+
+  var exs = state.exchanges || [];
+  if (exs.length) {
+    var prevSnap = (state.snapshots || {})[Capital.ymAdd(ym, -1)];
+    var snap = (state.snapshots || {})[ym];
+    h.push('<div class="kicker" style="margin:18px 0 8px">движение и прирост на биржах за ' + esc(ym) + '</div><div class="rows">');
+    exs.forEach(function (e) {
+      var mm = (e.monthly || {})[ym] || {};
+      var g = Capital.exchangeGrowth(e, ym, prevSnap, snap);
+      h.push('<div class="row" style="grid-template-columns:minmax(0,1fr) 92px 92px 92px minmax(0,1fr)">' +
+        '<span class="nm">' + tdot('exchange') + ' ' + esc(e.label || e.id) + '</span>' +
+        inp('ex-monthly', e.id, 'deposits', mm.deposits, { num: true, ym: ym }) +
+        inp('ex-monthly', e.id, 'withdrawals', mm.withdrawals, { num: true, ym: ym }) +
+        inp('ex-monthly', e.id, 'tithe', mm.tithe, { num: true, ym: ym }) +
+        '<span class="right num ' + (g ? signCls(g.usd) : 'muted') + '">' +
+        esc(g ? moneyS(g.usd, 'USD') + (g.pct == null ? '' : ' (' + Capital.fmtS(Math.round(g.pct * 10) / 10) + '%)') : 'нужны снимки двух месяцев') +
+        '</span></div>');
+    });
+    h.push('</div><div class="hint">Поля по порядку: добавления, снятия, десятина. Прирост считается за их вычетом, как в таблице.</div>');
+  }
+  h.push('</div></section>');
+  return h.join('');
+}
+
+/* ===================== план ===================== */
+
+var SC_COLORS = ['#FF7A59', '#6CC8FF', '#C8F55A', '#FF8FC7', '#FFC857'];
+
+function secPlan(state, ui) {
+  ui = ui || {};
+  var fact = Capital.factSeries(state);
+  var scenarios = (state.settings && state.settings.scenarios) || [];
+  var sc = scenarioOf(state, ui);
+  var ymNow = Capital.todayYm(new Date(nowMs(ui)));
+  var fromYm = fact.length ? fact[0].ym : ymNow;
+  scenarios.forEach(function (s) { if (Capital.ymDiff(s.startYm, fromYm) > 0) fromYm = s.startYm; });
+  var toYm = Capital.ymAdd(fact.length ? (Capital.ymDiff(fact[fact.length - 1].ym, ymNow) > 0 ? ymNow : fact[fact.length - 1].ym) : ymNow, 12);
+
+  var series = [{ name: 'факт', color: '#19C6B8', dashed: false, points: fact.map(function (p) { return { ym: p.ym, value: p.totalUsd }; }) }];
+  scenarios.forEach(function (s, i) {
+    series.push({ name: s.name, color: SC_COLORS[i % SC_COLORS.length], dashed: true, points: Capital.scenarioSeries(s, fromYm, toYm) });
+  });
+
+  var h = ['<section id="plan"><div class="card">'];
+  h.push('<div class="sec-head"><h2>План</h2><span class="note">линия факта по месячным снимкам против четырёх сценариев листа ФАКТ</span></div>');
+
+  if (!fact.length) {
+    h.push(emptyBox('Снимков капитала пока нет: зафиксируй месяц, и линия факта появится.',
+      btn('plan-snap', 'зафиксировать месяц', { solid: true, sm: true })));
+  }
+
+  h.push('<div class="segs">' + scenarios.map(function (s, i) {
+    return '<button class="chip btn' + (sc && sc.id === s.id ? ' on' : '') + '" data-act="scenario" data-v="' + esc(s.id) + '">' +
+      '<span class="tdot" style="background:' + SC_COLORS[i % SC_COLORS.length] + '"></span>' + esc(s.name) + '</button>';
+  }).join('') + btn('plan-snap', 'зафиксировать ' + ymNow, { sm: true }) + '</div>');
+
+  h.push(lineChart(series) || '<div class="hint">график появится, когда будет хотя бы два месяца данных</div>');
+
+  var snapYm = lastSnapshotYm(state);
+  var pd = sc && snapYm ? Capital.planDelta(state, sc.id, snapYm) : null;
+  h.push('<div class="plan-line">' + (pd
+    ? 'к плану ' + esc(sc.name) + ': <b class="num ' + signCls(pd.deltaUsd) + '">' + esc(moneyS(pd.deltaUsd, 'USD')) + '</b>' +
+      ' <span class="muted">за ' + esc(snapYm) + ': факт ' + esc(money(pd.factUsd, 'USD')) + ', план ' + esc(money(pd.planUsd, 'USD')) + '</span>'
+    : 'сравнить с планом пока нечего: нужен хотя бы один снимок месяца') + '</div>');
+
+  if (fact.length) {
+    h.push('<div class="snaps">' + fact.slice().reverse().map(function (p) {
+      return '<div class="row cur"><span class="nm">' + esc(p.ym) + '</span><span class="num">' + esc(money(p.totalUsd, 'USD')) +
+        '</span><span class="num right muted">без просадки ' + esc(money(p.totalNoDrawdownUsd, 'USD')) + '</span></div>';
+    }).join('') + '</div>');
+  }
+  h.push('<div class="hint">Повторная фиксация текущего месяца перезаписывает снимок и спрашивает подтверждение. Сценарии правятся в настройках.</div>');
+  h.push('</div></section>');
+  return h.join('');
+}
+
+/* ===================== настройки ===================== */
+
+function settingsPanel(state, ui) {
+  ui = ui || {};
+  var s = state.settings || {};
+  var sync = (ui && ui.sync) || {};
+  var h = ['<details class="settings"' + (isOpen(ui, 'settings') ? ' open' : '') + '><summary data-act="settings-toggle">настройки, синк и экспорт</summary><div class="set-grid">'];
+
+  h.push('<div class="set-block"><h3>Сценарии роста</h3>' +
+    (s.scenarios || []).map(function (x, i) {
+      return '<div class="sc"><span>' + '<span class="tdot" style="background:' + SC_COLORS[i % SC_COLORS.length] + '"></span> ' +
+        inp('scenario', x.id, 'name', x.name) + '</span>' +
+        inp('scenario', x.id, 'start', x.start, { num: true }) +
+        inp('scenario', x.id, 'startYm', x.startYm, { ph: 'YYYY-MM' }) +
+        inp('scenario', x.id, 'ratePct', x.ratePct, { num: true }) +
+        inp('scenario', x.id, 'monthlyAdd', x.monthlyAdd, { num: true }) +
+        delBtn('sc-del', x.id) + '</div>';
+    }).join('') +
+    '<div class="set-actions">' + btn('sc-add', 'добавить сценарий', { sm: true }) + '</div>' +
+    '<div class="hint">Поля по порядку: имя, старт, месяц старта, процент в месяц, пополнение в месяц.</div></div>');
+
+  h.push('<div class="set-block"><h3>Числа и пороги</h3>' +
+    '<div class="set-row"><span class="l">основная валюта</span>' + sel('settings', '', 'baseCurrency', s.baseCurrency, [{ v: 'USD', l: 'доллар' }, { v: 'RUB', l: 'рубль' }], 'w-sm') + '</div>' +
+    '<div class="set-row"><span class="l">курс на случай офлайна, ₽ за $</span>' + inp('settings', '', 'planRate', s.planRate, { num: true, cls: 'w-xs' }) + '</div>' +
+    '<div class="set-row"><span class="l">агент молчит, часов</span>' + inp('settings', '', 'agentStaleHours', s.agentStaleHours, { num: true, cls: 'w-xs' }) + '</div>' +
+    '<div class="set-row"><span class="l">остаток устарел, дней</span>' + inp('settings', '', 'staleBalanceDays', s.staleBalanceDays, { num: true, cls: 'w-xs' }) + '</div>' +
+    '<div class="set-row"><span class="l">оценка квартиры устарела, дней</span>' + inp('settings', '', 'apartmentStaleDays', s.apartmentStaleDays, { num: true, cls: 'w-xs' }) + '</div>' +
+    '<div class="set-actions">' + btn('cbr', 'обновить курсы ЦБ', { sm: true }) + '</div></div>');
+
+  h.push('<div class="set-block"><h3>Статьи месяца</h3>' +
+    ['income', 'expense'].map(function (kind) {
+      var items = (s.monthTemplate || {})[kind] || [];
+      var skip = (s.monthTemplate || {}).excludeFromTotal || [];
+      return '<div class="kicker" style="margin:8px 0 6px">' + (kind === 'income' ? 'доходы' : 'расходы') + '</div>' +
+        items.map(function (name) {
+          return '<div class="set-row"><span class="l">' + esc(name) + (kind === 'expense' && skip.indexOf(name) >= 0 ? ' <span class="badge">не в итого</span>' : '') + '</span>' +
+            '<span>' + (kind === 'expense' ? btn('tpl-skip', skip.indexOf(name) >= 0 ? 'в итого' : 'не в итого', { sm: true, v: name }) : '') +
+            '<button class="del" data-act="tpl-del" data-kind="' + kind + '" data-v="' + esc(name) + '" title="удалить статью">×</button></span></div>';
+        }).join('') +
+        '<div class="set-actions">' + newInp('tpl-' + kind, 'name', { ph: 'новая статья', cls: 'w-md' }) +
+        '<button class="btn sm" data-act="tpl-add" data-kind="' + kind + '">добавить</button></div>';
+    }).join('') + '</div>');
+
+  h.push('<div class="set-block"><h3>Синк между устройствами</h3>' +
+    '<div class="set-row"><span class="l">состояние</span><span>' +
+    esc(sync.enabled ? (sync.owner || '') + '/' + (sync.repo || '') + ', ' + (sync.lastSync ? 'последний обмен в ' + hhmm(sync.lastSync) : 'обмена ещё не было') : 'выключен') + '</span></div>' +
+    '<div class="set-actions">' + newInp('sync', 'token', { ph: 'GitHub-токен с правом Contents', cls: 'w-md' }) +
+    btn('sync-enable', 'включить синк', { solid: true, sm: true }) + '</div>' +
+    '<div class="set-actions">' + btn('sync-code', 'показать код устройства', { sm: true }) +
+    newInp('sync', 'code', { ph: 'код с первого устройства', cls: 'w-md' }) + btn('sync-link', 'подключить по коду', { sm: true }) +
+    (sync.enabled ? btn('sync-off', 'выключить', { sm: true }) : '') + '</div>' +
+    '<div class="hint">Токен и ключ живут только на устройстве, в capital-devsync, и ни в состояние, ни в экспорт не попадают. Репо приватный, файл зашифрован.</div></div>');
+
+  h.push('<div class="set-block"><h3>Данные</h3>' +
+    '<div class="set-actions">' + btn('export', 'экспорт JSON', { sm: true }) + btn('import', 'импорт JSON', { sm: true }) +
+    btn('backup-enc', 'шифробэкап', { sm: true }) + btn('backup-dec', 'восстановить из бэкапа', { sm: true }) + '</div>' +
+    '<div class="set-actions">' + newInp('backup', 'pass', { type: 'password', ph: 'пароль бэкапа', cls: 'w-md' }) +
+    '<span class="hint">Пароль вводится здесь, окон приложение не открывает. Без него бэкап не расшифровать, в состояние и в экспорт он не попадает.</span></div>' +
+    '<div class="set-actions">' + (state.demo ? btn('demo-off', 'выйти из примера', { sm: true }) : btn('demo', 'показать пример', { sm: true })) +
+    btn('wipe', 'очистить всё', { sm: true }) + '</div>' +
+    '<div class="hint">Приложение держит свои ключи capital-v1, capital-ui и capital-devsync: данные «Бюджета» оно не трогает.</div></div>');
+
+  h.push('<div class="set-block"><h3>Типы активов и цвета</h3><div class="types">' +
+    Object.keys(Capital.ASSET_TYPES).map(function (id) {
+      return '<span class="t">' + tdot(id) + esc(tp(id).label) + (tp(id).sign < 0 ? ' (минус)' : '') + '</span>';
+    }).join('') + '</div><div class="hint">Цвет типа одинаков в карточках, легендах и на графиках: словарь лежит в core.js.</div></div>');
+
+  h.push('</div></details>');
+  return h.join('');
+}
+
+/* ===================== сборка страницы ===================== */
+
+function pageHtml(state, ui) {
+  return '<aside class="side"><div class="top"><span class="wordmark">Семейный<br>капитал<span class="d">.</span></span></div>' +
+    tabsBar() + chipsBar(state, ui) + '</aside><div class="main">' +
+    secHero(state, ui) +
+    secAccounts(state, ui) +
+    secExchanges(state, ui) +
+    secApartment(state, ui) +
+    secInvestments(state, ui) +
+    secMonth(state, ui) +
+    secPlan(state, ui) +
+    settingsPanel(state, ui) +
+    '<div class="colophon"><span>семейный капитал, версия состояния ' + Capital.VERSION + '</span><span>данные локально и в шифрованном синке</span></div></div>';
+}
+</script>
+
+<script id="app">
+'use strict';
+/* Склейка: состояние, сохранение, перерисовка, синк, курсы ЦБ, PWA.
+   Расчёты только через Capital.*, синк только через Sync.*. Рендер только через функции блока render. */
+(function () {
+  var LS_KEY = 'capital-v1';
+  var UI_KEY = 'capital-ui';
+  var sheet = document.getElementById('sheet');
+
+  var state = null;
+  var ui = { owner: '', cur: null, ym: null, scenarioId: null, open: {}, sync: {}, rateAt: {} };
+
+  function loadLocal() {
+    try { var s = JSON.parse(localStorage.getItem(LS_KEY)); return s && s.version ? s : null; } catch (e) { return null; }
+  }
+  function loadUi() {
+    try {
+      var u = JSON.parse(localStorage.getItem(UI_KEY));
+      if (u && typeof u === 'object') {
+        ui.owner = u.owner || '';
+        ui.cur = u.cur || null;
+        ui.ym = u.ym || null;
+        ui.scenarioId = u.scenarioId || null;
+        ui.open = u.open && typeof u.open === 'object' ? u.open : {};
+      }
+    } catch (e) { /* первый запуск */ }
+  }
+  function saveUi() {
+    try {
+      localStorage.setItem(UI_KEY, JSON.stringify({ owner: ui.owner, cur: ui.cur, ym: ui.ym, scenarioId: ui.scenarioId, open: ui.open }));
+    } catch (e) { /* приватный режим: UI-состояние не критично */ }
+  }
+
+  function save() {
+    state.savedAt = new Date().toISOString();
+    try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { note('не сохранить локально: нет места в браузере'); }
+    if (!state.demo) schedulePush();
+  }
+  function render() {
+    sheet.innerHTML = pageHtml(state, ui);
+    if (noteText) {
+      var box = document.createElement('div');
+      box.className = 'warn';
+      box.textContent = noteText;
+      sheet.insertBefore(box, sheet.firstChild);
+    }
+  }
+  var noteText = '';
+  function note(text) { noteText = text || ''; render(); }
+
+  /* демо снимается первым своим вводом: остаётся чистый state плюс то, что ввели */
+  function exitDemo() {
+    if (!state.demo) return false;
+    state = Capital.migrate(Capital.defaultState());
+    return true;
+  }
+
+  /* ===================== синк ===================== */
+
+  var sync = Sync.create({
+    getState: function () { return state && !state.demo ? state : null; },
+    onApply: function (remote) {
+      state = Capital.migrate(remote);
+      try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* место кончилось */ }
+      render();
+    },
+    onStatus: function (st) { ui.sync.status = st; refreshSyncChip(); },
+  });
+  var pushTimer = null;
+  function schedulePush() {
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(function () {
+      sync.push(state).catch(function () { /* статус уже в чипе */ });
+    }, 1500);
+  }
+  function refreshSyncChip() {
+    sync.config().then(function (c) {
+      ui.sync.enabled = !!(c && c.enabled);
+      ui.sync.owner = c && c.owner;
+      ui.sync.repo = c && c.repo;
+      ui.sync.lastSync = c && c.lastSync;
+      render();
+    }).catch(function () { /* нечего показывать */ });
+  }
+
+  /* ===================== курсы ЦБ ===================== */
+
+  var CBR_CODES = ['USD', 'KZT', 'AMD'];
+  function cbrUrl(dateStr) {
+    if (!dateStr) return 'https://www.cbr-xml-daily.ru/daily_json.js';
+    var p = dateStr.split('-');
+    return 'https://www.cbr-xml-daily.ru/archive/' + p[0] + '/' + p[1] + '/' + p[2] + '/daily_json.js';
+  }
+  function fetchRates() {
+    return fetch(cbrUrl()).then(function (r) { return r.json(); }).then(function (j) {
+      var date = String(j.Date || '').slice(0, 10) || Capital.todayStr();
+      CBR_CODES.forEach(function (c) {
+        var v = j.Valute && j.Valute[c];
+        if (v) state.rates[c] = { value: v.Value, date: date, nominal: v.Nominal || 1 };
+      });
+      save();
+      render();
+    }).catch(function () {
+      /* офлайн: в герое остаётся «курс от DD.MM» по кэшу в state.rates */
+      render();
+    });
+  }
+  /* курс на дату оценки квартиры: нужен только для подписи, в state не кэшируется */
+  function fetchRateAt(dateStr) {
+    if (!dateStr || ui.rateAt[dateStr] !== undefined) return;
+    ui.rateAt[dateStr] = null;
+    fetch(cbrUrl(dateStr)).then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+      if (j && j.Valute && j.Valute.USD) { ui.rateAt[dateStr] = j.Valute.USD.Value; render(); }
+    }).catch(function () { /* архив недоступен: подпись скажет, что курса нет */ });
+  }
+
+  /* ===================== мутации ===================== */
+
+  function findBy(list, id) { return (list || []).filter(function (x) { return x && x.id === id; })[0] || null; }
+
+  /* Ссылка на объявление проверяется уже на вводе: в состояние попадает только http(s),
+     остальное отбрасывается, и источник остаётся просто текстом. */
+  function upsertValuation(list, date, value, source, url) {
+    var d = date || Capital.todayStr();
+    var safe = url == null ? null : safeUrl(url);
+    if (url != null && String(url).trim() && !safe) note('ссылка не сохранена: нужен адрес на http:// или https://');
+    var found = null;
+    list.forEach(function (v) { if (v.date === d) found = v; });
+    if (found) {
+      found.value = value;
+      if (source != null) found.source = source;
+      if (safe != null) found.url = safe;
+      return;
+    }
+    list.push({ date: d, value: value, source: source || '', url: safe || '' });
+  }
+
+  function onChange(el) {
+    var ent = el.getAttribute('data-ent');
+    var f = el.getAttribute('data-f');
+    var id = el.getAttribute('data-id');
+    var raw = el.value;
+    var numv = Capital.parseNum(raw);
+    /* первый свой ввод снимает пример: остаётся чистое состояние плюс то, что ввели.
+       Правка самих демо-строк после этого ни к чему не относится и просто пропадает. */
+    if (ent !== 'settings' && ent !== 'ui') exitDemo();
+
+    if (ent === 'account') {
+      var a = findBy(state.accounts, id); if (!a) return;
+      if (f === 'balance' || f === 'balanceDate') {
+        var row = el.closest('.row');
+        var vEl = row.querySelector('[data-f="balance"]'), dEl = row.querySelector('[data-f="balanceDate"]');
+        var v = Capital.parseNum(vEl.value), d = dEl.value || Capital.todayStr();
+        if (v == null) return;
+        var hit = null;
+        a.balances.forEach(function (b) { if (b.date === d) hit = b; });
+        if (hit) hit.value = v; else a.balances.push({ date: d, value: v });
+      } else if (f === 'name' || f === 'bank' || f === 'country') a[f] = raw;
+      else a[f] = raw;
+    } else if (ent === 'exchange') {
+      var e = findBy(state.exchanges, id); if (!e) return;
+      if (f === 'atDate') e.last.at = raw ? raw + 'T12:00:00' : null;
+      else { e.last[f] = numv; if (!e.last.at) e.last.at = Capital.todayStr() + 'T12:00:00'; }
+    } else if (ent === 'ex-monthly') {
+      var ex = findBy(state.exchanges, id); if (!ex) return;
+      var ym = el.getAttribute('data-ym');
+      ex.monthly[ym] = ex.monthly[ym] || { deposits: 0, withdrawals: 0, tithe: 0 };
+      ex.monthly[ym][f] = numv == null ? 0 : numv;
+    } else if (ent === 'investment') {
+      var i = findBy(state.investments, id); if (!i) return;
+      if (f === 'value' || f === 'valueDate') {
+        var r2 = el.closest('.row');
+        var v2 = Capital.parseNum(r2.querySelector('[data-f="value"]').value);
+        var d2 = r2.querySelector('[data-f="valueDate"]').value || Capital.todayStr();
+        if (v2 == null) return;
+        upsertValuation(i.valuations, d2, v2, 'руками', null);
+      } else if (f === 'expectedYield') i.expectedYield = numv;
+      else i[f] = raw;
+    } else if (ent === 'apartment') {
+      if (f === 'area' || f === 'buyPrice') state.apartment[f] = numv;
+      else state.apartment[f] = raw;
+    } else if (ent === 'month-item') {
+      var mym = el.getAttribute('data-ym'), kind = el.getAttribute('data-kind'), k = el.getAttribute('data-k');
+      state.months[mym] = state.months[mym] || { income: {}, expense: {}, filledAt: null };
+      if (numv == null) delete state.months[mym][kind][k];
+      else state.months[mym][kind][k] = numv;
+      state.months[mym].filledAt = Capital.todayStr();
+    } else if (ent === 'scenario') {
+      var sc = ((state.settings.scenarios) || []).filter(function (x) { return x.id === id; })[0];
+      if (!sc) return;
+      if (f === 'name' || f === 'startYm') sc[f] = raw; else sc[f] = numv == null ? 0 : numv;
+    } else if (ent === 'settings') {
+      if (f === 'baseCurrency') { state.settings.baseCurrency = raw === 'RUB' ? 'RUB' : 'USD'; ui.cur = null; saveUi(); }
+      else state.settings[f] = numv == null ? state.settings[f] : numv;
+    } else return;
+
+    state = Capital.migrate(state);
+    save();
+    render();
+  }
+
+  function newVals(group) {
+    var out = {};
+    Array.prototype.forEach.call(sheet.querySelectorAll('[data-new="' + group + '"]'), function (el) {
+      out[el.getAttribute('data-f')] = el.value;
+    });
+    return out;
+  }
+
+  function onClick(el) {
+    var act = el.getAttribute('data-act');
+    var id = el.getAttribute('data-id');
+    var v = el.getAttribute('data-v');
+    var mutating = ['owner', 'cur', 'scenario', 'month-prev', 'month-next', 'month-now', 'acc-hist', 'inv-hist', 'ex-pos',
+      'settings-toggle', 'export', 'import', 'backup-enc', 'backup-dec', 'sync-enable', 'sync-code', 'sync-link', 'sync-off',
+      'cbr', 'demo', 'demo-off', 'acc-focus', 'ap-focus', 'wipe'].indexOf(act) < 0;
+    if (mutating) exitDemo();
+
+    switch (act) {
+      case 'owner': ui.owner = v || ''; saveUi(); render(); return;
+      case 'cur': ui.cur = null; state.settings.baseCurrency = v === 'RUB' ? 'RUB' : 'USD'; save(); render(); return;
+      case 'scenario': ui.scenarioId = v; saveUi(); render(); return;
+      case 'month-prev': ui.ym = Capital.ymAdd(ui.ym || Capital.todayYm(), -1); saveUi(); render(); return;
+      case 'month-next': ui.ym = Capital.ymAdd(ui.ym || Capital.todayYm(), 1); saveUi(); render(); return;
+      case 'month-now': ui.ym = null; saveUi(); render(); return;
+      case 'acc-hist': toggleOpen('acc:' + id); return;
+      case 'inv-hist': toggleOpen('inv:' + id); return;
+      case 'ex-pos': toggleOpen('ex:' + id); return;
+      case 'settings-toggle': ui.open.settings = !ui.open.settings; saveUi(); return;
+      case 'demo':
+        state = Capital.demoState(); save(); render(); return;
+      case 'demo-off':
+        state = Capital.migrate(Capital.defaultState()); save(); render(); return;
+      case 'acc-focus': focusNew('acc'); return;
+      case 'ap-focus': focusNew('ap'); return;
+      case 'cbr': fetchRates(); return;
+      case 'month-fill': ui.ym = ui.ym || Capital.todayYm(); saveUi(); focusMonth(); return;
+
+      case 'acc-add': {
+        var f = newVals('acc');
+        if (!String(f.name || '').trim() || Capital.parseNum(f.balance) == null) { note('счёт не добавлен: нужны название и остаток'); return; }
+        state.accounts.push({
+          id: Capital.uid(), name: f.name.trim(), kind: f.kind || 'cash', bank: f.bank || '', country: '',
+          currency: f.currency || 'USD', owner: f.owner || 'общий',
+          balances: [{ date: f.date || Capital.todayStr(), value: Capital.parseNum(f.balance) }],
+        });
+        break;
+      }
+      case 'acc-del': {
+        var acc = findBy(state.accounts, id);
+        if (!acc || !confirm('Удалить счёт «' + acc.name + '» вместе с историей остатков?')) return;
+        state.accounts = state.accounts.filter(function (x) { return x.id !== id; });
+        break;
+      }
+      case 'ex-add': {
+        var ef = newVals('ex');
+        var label = String(ef.label || '').trim();
+        if (!label) { note('аккаунт не добавлен: нужна подпись'); return; }
+        /* id вида okx-main, bybit-veles: биржа до дефиса, как ждёт слияние с агентом */
+        var base = (ef.exchange || 'okx') + '-' + (ef.veles ? 'veles' : 'main');
+        var exid = base, n = 2;
+        while (findBy(state.exchanges, exid)) { exid = base + '-' + n; n++; }
+        state.exchanges.push({
+          id: exid, exchange: ef.exchange || 'okx', label: label, owner: ef.owner || 'Костя',
+          veles: !!ef.veles, source: 'manual',
+          last: { at: Capital.todayStr() + 'T12:00:00', equity: Capital.parseNum(ef.equity), free: null, inPositions: null, unrealizedPnl: null, positions: [], currency: 'USD', error: null },
+          monthly: {},
+        });
+        break;
+      }
+      case 'ex-del': {
+        var ex2 = findBy(state.exchanges, id);
+        if (!ex2 || !confirm('Удалить аккаунт биржи «' + (ex2.label || ex2.id) + '»?')) return;
+        state.exchanges = state.exchanges.filter(function (x) { return x.id !== id; });
+        break;
+      }
+      case 'ap-val-add': {
+        var af = newVals('ap');
+        var apv = Capital.parseNum(af.value);
+        if (apv == null) { note('оценка не добавлена: нужна цена'); return; }
+        upsertValuation(state.apartment.valuations, af.date, apv, af.source || 'руками', af.url || '');
+        break;
+      }
+      case 'ap-val-del': {
+        var list = state.apartment.valuations.slice().sort(function (a, b) { return String(a.date) < String(b.date) ? 1 : -1; });
+        var victim = list[Number(v)];
+        if (!victim || !confirm('Удалить оценку от ' + victim.date + '?')) return;
+        state.apartment.valuations = state.apartment.valuations.filter(function (x) { return x !== victim; });
+        break;
+      }
+      case 'inv-add': {
+        var inf = newVals('inv');
+        if (!String(inf.name || '').trim() || Capital.parseNum(inf.value) == null) { note('инвестиция не добавлена: нужны название и сумма'); return; }
+        state.investments.push({
+          id: Capital.uid(), type: inf.type || 'other', name: inf.name.trim(), owner: inf.owner || 'общий',
+          currency: inf.currency || 'USD',
+          valuations: [{ date: inf.date || Capital.todayStr(), value: Capital.parseNum(inf.value), source: 'руками', url: '' }],
+          expectedYield: Capital.parseNum(inf.expectedYield), maturity: inf.maturity || '', note: '',
+        });
+        break;
+      }
+      case 'inv-del': {
+        var inv = findBy(state.investments, id);
+        if (!inv || !confirm('Удалить «' + inv.name + '»? Месячные снимки задним числом не пересчитываются.')) return;
+        state.investments = state.investments.filter(function (x) { return x.id !== id; });
+        break;
+      }
+      case 'plan-snap': {
+        var ym = Capital.todayYm();
+        if (state.snapshots[ym] && !confirm('Снимок за ' + ym + ' уже есть. Перезаписать его текущими цифрами?')) return;
+        state.snapshots[ym] = Capital.makeSnapshot(state, ym, new Date().toISOString());
+        break;
+      }
+      case 'sc-add': {
+        state.settings.scenarios.push({ id: Capital.uid(), name: 'новый сценарий', start: 0, startYm: Capital.todayYm(), ratePct: 0, monthlyAdd: 0 });
+        break;
+      }
+      case 'sc-del': {
+        if (state.settings.scenarios.length < 2) { note('последний сценарий не удаляется: график останется без плана'); return; }
+        if (!confirm('Удалить сценарий?')) return;
+        state.settings.scenarios = state.settings.scenarios.filter(function (x) { return x.id !== id; });
+        break;
+      }
+      case 'tpl-add': {
+        var kind = el.getAttribute('data-kind');
+        var tf = newVals('tpl-' + kind);
+        var nm = String(tf.name || '').trim();
+        if (!nm) { note('статья не добавлена: нужно название'); return; }
+        if (state.settings.monthTemplate[kind].indexOf(nm) < 0) state.settings.monthTemplate[kind].push(nm);
+        break;
+      }
+      case 'tpl-del': {
+        var dk = el.getAttribute('data-kind');
+        if (!confirm('Удалить статью «' + v + '» из шаблона? Введённые цифры за месяцы останутся.')) return;
+        state.settings.monthTemplate[dk] = state.settings.monthTemplate[dk].filter(function (x) { return x !== v; });
+        break;
+      }
+      case 'tpl-skip': {
+        var sk = state.settings.monthTemplate.excludeFromTotal;
+        if (sk.indexOf(v) >= 0) state.settings.monthTemplate.excludeFromTotal = sk.filter(function (x) { return x !== v; });
+        else sk.push(v);
+        break;
+      }
+      case 'wipe': {
+        if (!confirm('Очистить все данные приложения на этом устройстве? Синк и бэкапы не затрагиваются.')) return;
+        state = Capital.migrate(Capital.defaultState());
+        break;
+      }
+      case 'export': exportJson(); return;
+      case 'import': importJson(); return;
+      case 'backup-enc': encBackup(); return;
+      case 'backup-dec': decBackup(); return;
+      case 'sync-enable': {
+        var token = (newVals('sync').token || '').trim();
+        if (!token) { note('нужен GitHub-токен с правом Contents на один репо'); return; }
+        sync.enable(token).then(function (r) { note('синк включён: ' + r.owner + '/' + r.repo); refreshSyncChip(); })
+          .catch(function (e) { note('синк не включился: ' + e.message); });
+        return;
+      }
+      case 'sync-code': {
+        sync.code().then(function (c) {
+          if (!c) { note('синк ещё не включён, кода нет'); return; }
+          note('код устройства (вставь его на втором устройстве или открой ссылку с #link=' + c.slice(0, 12) + '...): ' + c);
+        });
+        return;
+      }
+      case 'sync-link': {
+        var code = (newVals('sync').code || '').trim();
+        if (!code) { note('вставь код с первого устройства'); return; }
+        sync.link(code).then(function (r) { note('подключено к ' + r.owner + '/' + r.repo); refreshSyncChip(); })
+          .catch(function (e) { note('код не подошёл: ' + e.message); });
+        return;
+      }
+      case 'sync-off': {
+        if (!confirm('Выключить синк на этом устройстве? Данные останутся локально.')) return;
+        sync.disable().then(function () { note('синк выключен'); refreshSyncChip(); });
+        return;
+      }
+      default: return;
+    }
+    state = Capital.migrate(state);
+    save();
+    render();
+  }
+
+  function toggleOpen(key) {
+    ui.open[key] = !ui.open[key];
+    saveUi();
+    render();
+  }
+  function focusNew(group) {
+    var el = sheet.querySelector('[data-new="' + group + '"]');
+    if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); }
+  }
+  function focusMonth() {
+    render();
+    var el = sheet.querySelector('#month [data-ent="month-item"]');
+    if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); }
+  }
+
+  /* ===================== файлы ===================== */
+
+  function download(name, blob) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+  }
+  function exportJson() {
+    download('capital-export-' + Capital.todayStr() + '.json', new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }));
+  }
+  function pickFile(accept, onText) {
+    var inpEl = document.createElement('input');
+    inpEl.type = 'file';
+    inpEl.accept = accept;
+    inpEl.onchange = function () { var f = inpEl.files[0]; if (f) onText(f); };
+    inpEl.click();
+  }
+  function importJson() {
+    pickFile('.json', function (f) {
+      f.text().then(function (txt) {
+        var data = JSON.parse(txt);
+        if (!data || !data.version) { note('не похоже на данные капитала: нет поля version'); return; }
+        state = Capital.migrate(data);
+        save();
+        render();
+        note('импорт прошёл: счетов ' + state.accounts.length + ', месяцев ' + Object.keys(state.months).length);
+      }).catch(function () { note('не прочитать JSON: файл повреждён'); });
+    });
+  }
+  function deriveKey(pass, salt, usage) {
+    return crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']).then(function (km) {
+      return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: salt, iterations: 150000, hash: 'SHA-256' }, km, { name: 'AES-GCM', length: 256 }, false, [usage]);
+    });
+  }
+  /* Пароль берётся полем в настройках, а не всплывающим окном: окон приложение не открывает.
+     В состояние, в экспорт и в лог он не попадает, живёт только в этом вызове. */
+  function backupPass() {
+    return String(newVals('backup').pass || '');
+  }
+  function clearBackupPass() {
+    var el = sheet.querySelector('[data-new="backup"][data-f="pass"]');
+    if (el) el.value = '';
+  }
+  function encBackup() {
+    var pass = backupPass();
+    if (!pass) { note('впиши пароль бэкапа в поле рядом с кнопкой: без него файл не зашифровать'); return; }
+    clearBackupPass();
+    var salt = crypto.getRandomValues(new Uint8Array(16));
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    deriveKey(pass, salt, 'encrypt').then(function (key) {
+      return crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, new TextEncoder().encode(JSON.stringify(state)));
+    }).then(function (ct) {
+      var out = new Uint8Array(16 + 12 + ct.byteLength);
+      out.set(salt, 0); out.set(iv, 16); out.set(new Uint8Array(ct), 28);
+      download('capital-backup-' + Capital.todayStr() + '.enc', new Blob([out], { type: 'application/octet-stream' }));
+    }).catch(function (e) { note('шифробэкап не сделан: ' + e.message); });
+  }
+  function decBackup() {
+    var pass = backupPass();
+    if (!pass) { note('впиши пароль бэкапа в поле рядом с кнопкой, потом выбери файл'); return; }
+    clearBackupPass();
+    pickFile('.enc', function (f) {
+      f.arrayBuffer().then(function (buf) {
+        var b = new Uint8Array(buf);
+        return deriveKey(pass, b.slice(0, 16), 'decrypt').then(function (key) {
+          return crypto.subtle.decrypt({ name: 'AES-GCM', iv: b.slice(16, 28) }, key, b.slice(28));
+        });
+      }).then(function (pt) {
+        var data = JSON.parse(new TextDecoder().decode(pt));
+        if (!data || !data.version) { note('файл не похож на бэкап капитала'); return; }
+        if (!confirm('Восстановить капитал из бэкапа? Текущие данные на этом устройстве заменятся.')) return;
+        state = Capital.migrate(data);
+        save();
+        render();
+      }).catch(function () { note('не расшифровать: неверный пароль или повреждённый файл'); });
+    });
+  }
+
+  /* ===================== связывание ===================== */
+
+  function bind() {
+    /* делегирование: обработчики живут на контейнере и переживают перерисовку,
+       инпуты слушают change, а не input, иначе перерисовка забирает фокус на каждой цифре */
+    sheet.addEventListener('change', function (ev) {
+      var el = ev.target.closest('[data-ent]');
+      if (el) { noteText = ''; onChange(el); }
+    });
+    sheet.addEventListener('click', function (ev) {
+      var el = ev.target.closest('[data-act]');
+      if (!el) return;
+      if (el.tagName === 'SUMMARY') { ui.open.settings = !ui.open.settings; saveUi(); return; }
+      ev.preventDefault();
+      noteText = '';
+      onClick(el);
+    });
+    sheet.addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Enter') return;
+      var el = ev.target.closest('[data-new]');
+      if (!el) return;
+      var group = el.getAttribute('data-new');
+      var map = { acc: 'acc-add', ex: 'ex-add', inv: 'inv-add', ap: 'ap-val-add' };
+      var b = map[group] && sheet.querySelector('[data-act="' + map[group] + '"]');
+      if (b) b.click();
+    });
+    window.addEventListener('beforeunload', function () {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) { /* не критично */ }
+    });
+    /* sync.loop не слушает возврат на вкладку сам: дёргаем pull отсюда */
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) sync.pull({ force: false }).catch(function () { /* статус в чипе */ });
+    });
+  }
+
+  /* ===================== старт ===================== */
+
+  loadUi();
+  state = Capital.migrate(loadLocal() || Capital.defaultState());
+
+  /* демо по ссылке ?demo=1 нужно для скриншотов: своих данных оно не трогает */
+  if (/[?&]demo=1/.test(location.search) && !loadLocal()) state = Capital.demoState();
+
+  bind();
+  render();
+
+  /* #link= разбирается раньше вкладок и стирается из адреса.
+     Решение принимает applyLinkCode: спрашивает всегда, называя репо из самого кода,
+     а при неудаче возвращает прежний конфиг синка, который sync.link у себя чистит. */
+  (function () {
+    var m = location.hash.match(/^#link=([A-Za-z0-9+/=]+)/);
+    if (!m) return;
+    history.replaceState(null, '', location.pathname + location.search);
+    applyLinkCode(m[1], {
+      config: function () { return sync.config(); },
+      link: function (code) { return sync.link(code); },
+      confirm: function (q) { return confirm(q); },
+      note: note,
+      backup: function () { try { return localStorage.getItem(Sync.LS_KEY); } catch (e) { return null; } },
+      restore: function (saved) {
+        try {
+          if (saved == null) localStorage.removeItem(Sync.LS_KEY);
+          else localStorage.setItem(Sync.LS_KEY, saved);
+        } catch (e) { /* место кончилось: настройки синка придётся ввести руками */ }
+      },
+    }).then(function () { refreshSyncChip(); });
+  })();
+
+  refreshSyncChip();
+  sync.loop('start');
+  if (!state.demo) fetchRates();
+  var lastAp = Capital.lastValuation(state.apartment);
+  if (lastAp && (state.apartment.currency || 'RUB') === 'RUB') fetchRateAt(lastAp.date);
+
+  /* PWA только на https: на file:// service worker запрещён */
+  if (location.protocol === 'https:') {
+    var ml = document.createElement('link');
+    ml.rel = 'manifest';
+    ml.href = 'manifest.webmanifest';
+    document.head.appendChild(ml);
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function () { /* офлайна не будет */ });
+  }
+})();
+</script>
+</body>
+</html>
